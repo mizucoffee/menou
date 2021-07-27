@@ -1,0 +1,110 @@
+---
+name: todo apps
+require:
+  files:
+    - views/test.erb
+  routes:
+    get:
+      - "/"
+      - "/signup"
+      - "/signin"
+      - "/signout"
+      - "/tasks/new"
+      - "/tasks/:id/star"
+      - "/tasks/:id/edit"
+      - "/tasks/over"
+      - "/tasks/done"
+    post:
+      - "/signup"
+      - "/signin"
+      - "/tasks"
+      - "/tasks/:id/done"
+      - "/tasks/:id/delete"
+      - "/tasks/:id"
+tables:
+  lists:
+    - name: name
+      type: string
+    - name: created_at
+      type: datetime
+      options:
+        "null": false
+    - name: updated_at
+      type: datetime
+      options:
+        "null": false
+  tasks:
+    - name: user_id
+      type: integer
+    - name: title
+      type: string
+    - name: completed
+      type: boolean
+    - name: due_date
+      type: date
+    - name: star
+      type: boolean
+    - name: list_id
+      type: integer
+      options:
+        default: 1
+    - name: created_at
+      type: datetime
+      options:
+        "null": false
+    - name: updated_at
+      type: datetime
+      options:
+        "null": false
+  users:
+    - name: name
+      type: string
+    - name: password_digest
+      type: string
+    - name: created_at
+      type: datetime
+      options:
+        "null": false
+    - name: updated_at
+      type: datetime
+      options:
+        "null": false
+tests:
+  - type: get
+    path: /
+    expect: 200
+  - type: get
+    path: /signup
+    expect: 200
+  - type: get
+    path: /signin
+    expect: 200
+  - type: get
+    path: /signout
+    expect: 302
+  - type: get
+    path: /tasks/new
+    expect: 200
+  - type: get
+    path: /tasks/0/star
+    expect: 500
+  - type: get
+    path: /tasks/0/edit
+    expect: 500
+  - type: get
+    path: /tasks/over
+    expect: 500
+  - type: get
+    path: /tasks/done
+    expect: 500
+  - type: post
+    path: /tasks
+    expect: 200
+  - type: database
+    table: tasks
+    where:
+      id: 1
+    expect:
+      name: test
+  - type: screenshot
+    path: /
