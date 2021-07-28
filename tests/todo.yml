@@ -70,6 +70,7 @@ tables:
       options:
         "null": false
 tests:
+  # 初期状態ルーティング
   - type: get
     path: /
     expect: 200
@@ -97,14 +98,33 @@ tests:
   - type: get
     path: /tasks/done
     expect: 500
-  - type: post
+  - name: "未ログイン時は生成されない(before)"
+    type: post
     path: /tasks
-    expect: 200
+    body:
+      due_date: "2030-01-01"
+      list: "プライベート"
+      title: "タスク1"
+    expect: 303
   - type: database
     table: tasks
     where:
+      title: "タスク1"
+    expect: null
+
+  # 扱い
+  - type: post
+    path: /signup
+    expect: 303
+    body:
+      name: menou_user
+      password: password
+      password_confirm: password
+  - type: database
+    table: users
+    where:
       id: 1
     expect:
-      name: test
+      name: menou_user
   - type: screenshot
     path: /
