@@ -6,8 +6,8 @@ pastel = Pastel.new
 spinners = {}
 spins = {}
 
-menou = Menou.new 'express'
-menou.set_path File.expand_path('./repo', File.dirname(__FILE__))
+menou = Menou.new 'todo'
+menou.set_path File.expand_path('./repob', File.dirname(__FILE__))
 # menou.git_clone 'https://github.com/mizucoffee/todo_app'
 menou.set_callback { |id ,title, type, status, messages|
   if status == 0

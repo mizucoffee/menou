@@ -26,7 +26,7 @@ class Menou
     @path = path
   end
 
-  def git_clone
+  def git_clone(repo_url)
     @path = Dir.mktmpdir
     Git.clone(repo_url, @path)
   end
@@ -50,7 +50,7 @@ class Menou
       prepare_tb = MenouTaskBlock.new "環境準備", @callback
       prepare_tb.task('$ bundle install') { Open3.capture2e('bundle install', :chdir => @path) }
       prepare_tb.task('$ rake db:create') { Open3.capture2e('rake db:create', :chdir => @path) }
-      prepare_tb.task('$ rake db:migrate:reset') { Open3.capture2e('rake db:migrate', :chdir => @path) }
+      prepare_tb.task('$ rake db:migrate:reset') { Open3.capture2e('rake db:migrate:reset', :chdir => @path) }
       prepare_tb.task('$ rake db:seed') { Open3.capture2e('rake db:seed', :chdir => @path) }
 
       prepare_tb.task('DB接続') {
@@ -81,41 +81,10 @@ class Menou
       test['tasks'].each do |task|
         script = @@test_scripts[task['type']]
         next if script.nil?
-
         script.call task, test_tb, @path
       end
 
       @results.push test_tb.results
-      
-      # test['tasks'].each do |task|
-      #   case task['type']
-      #   when 'get'
-      #     test_tb.task("GET #{task['path']}") do |success, error|
-      #       query = (task['query'].nil?) ? "" : URI.encode_www_form(task['query'])
-      #       res = @client.get task['path'] + "?" + query
-      #       error.call "Unexpected status code: #{res.status}, expected: #{task['expect']}" if res.status != task['expect']
-      #     end
-      #   when 'post'
-      #     test_tb.task("POST #{task['path']}") do |success, error|
-      #       query = (task['query'].nil?) ? "" : URI.encode_www_form(task['query'])
-      #       res = post_form task['path'] + "?" + query, task['body']
-      #       error.call "Unexpected status code: #{res.status}, expected: #{task['expect']}" if res.status != task['expect']
-      #     end
-      #   when 'database'
-      #     test_tb.task("Database #{task['table'].classify} where: #{task['where'].map {|k, v| "#{k}=\"#{v}\""}.join ', '}") do |success, error|
-      #       table_class = task['table'].classify.constantize rescue nil
-      #       next error.call "Table not found" if table_class.nil?
-
-      #       result = table_class.find_by(task['where'])
-      #       next success.call if task['expect'].nil? and result.nil?
-      #       next error.call "Record not found" if result.nil?
-
-      #       task['expect'].each do |k, v|
-      #         error.call "Unexpected value: #{task['table'].classify}.#{k}=\"#{result[k]}\", expected: \"#{v}\"" if result[k].to_s != v.to_s
-      #       end
-      #     end
-      #   end
-      # end
     end
   end
 end

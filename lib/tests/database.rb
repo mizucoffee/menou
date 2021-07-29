@@ -1,7 +1,7 @@
 register_test('db_schema') do |option, test_tb, path|
   table_name = option['table'].classify
 
-  test_tb.task("テーブル \"#{table_name}\" の存在確認") do |error|
+  test_tb.task("テーブル'#{table_name}'の存在確認") do |error|
     if !ActiveRecord::Base.connection.tables.include? option['table']
       next error.call 'Table not found'
     end
@@ -23,17 +23,17 @@ register_test('db_schema') do |option, test_tb, path|
   end
 end
 
-# register_test('db_select') do |option, test_tb, path|
-#   test_tb.task("Database #{task['table'].classify} where: #{task['where'].map {|k, v| "#{k}=\"#{v}\""}.join ', '}") do |success, error|
-#     table_class = task['table'].classify.constantize rescue nil
-#     next error.call "Table not found" if table_class.nil?
+register_test('db_where') do |option, test_tb, path|
+  test_tb.task("SELECT * FROM #{option['table'].classify} WHERE #{option['where'].map {|k, v| "#{k}=\"#{v}\""}.join ' AND '};") do |error|
+    table_class = option['table'].classify.constantize rescue nil
+    next error.call "テーブルが存在しません" if table_class.nil?
 
-#     result = table_class.find_by(task['where'])
-#     next success.call if task['expect'].nil? and result.nil?
-#     next error.call "Record not found" if result.nil?
+    result = table_class.find_by(option['where'])
+    next if option['expect'].nil? and result.nil?
+    next error.call "レコードが存在しません" if result.nil?
 
-#     task['expect'].each do |k, v|
-#       error.call "Unexpected value: #{task['table'].classify}.#{k}=\"#{result[k]}\", expected: \"#{v}\"" if result[k].to_s != v.to_s
-#     end
-#   end
-# end
+    option['expect'].each do |k, v|
+      error.call "レコードの値が正しくありません 結果: '#{result[k].to_s}' 期待する値: '#{v}'" if result[k].to_s != v.to_s
+    end
+  end
+end

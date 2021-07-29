@@ -1,144 +1,147 @@
 ---
 name: todo apps
-require:
-  files:
-    - views/test.erb
-  routes:
-    get:
-      - "/"
-      - "/signup"
-      - "/signin"
-      - "/signout"
-      - "/tasks/new"
-      - "/tasks/:id/star"
-      - "/tasks/:id/edit"
-      - "/tasks/over"
-      - "/tasks/done"
-    post:
-      - "/signup"
-      - "/signin"
-      - "/tasks"
-      - "/tasks/:id/done"
-      - "/tasks/:id/delete"
-      - "/tasks/:id"
-tables:
-  lists:
-    - name: name
-      type: string
-    - name: created_at
-      type: datetime
-      options:
-        "null": false
-    - name: updated_at
-      type: datetime
-      options:
-        "null": false
-  tasks:
-    - name: user_id
-      type: integer
-    - name: title
-      type: string
-    - name: completed
-      type: boolean
-    - name: due_date
-      type: date
-    - name: star
-      type: boolean
-    - name: list_id
-      type: integer
-      options:
-        default: 1
-    - name: created_at
-      type: datetime
-      options:
-        "null": false
-    - name: updated_at
-      type: datetime
-      options:
-        "null": false
-  users:
-    - name: name
-      type: string
-    - name: password_digest
-      type: string
-    - name: created_at
-      type: datetime
-      options:
-        "null": false
-    - name: updated_at
-      type: datetime
-      options:
-        "null": false
 tests:
-  # 初期状態ルーティング
-  - name: "初期状態ルーティングテスト"
+  - name: "[FILE] ファイルの存在確認"
     tasks:
-      - type: get
+      - type: file_exists
+        files:
+          - app.rb
+          - models.rb
+          - db/migrate/*_create_users.rb
+          - db/migrate/*_create_tasks.rb
+          - db/migrate/*_add_completed_and_so_on_to_tasks.rb
+          - db/migrate/*_create_lists.rb
+          - db/migrate/*_add_list_id_to_tasks.rb
+          - views/_count_due.erb
+          - views/edit.erb
+          - views/index.erb
+          - views/layout.erb
+          - views/new.erb
+          - views/sign_in.erb
+          - views/sign_up.erb
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: lists
+        expect:
+          - name: name
+            type: string
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+      - type: db_schema
+        table: tasks
+        expect:
+          - name: user_id
+            type: integer
+          - name: title
+            type: string
+          - name: completed
+            type: boolean
+          - name: due_date
+            type: date
+          - name: star
+            type: boolean
+          - name: list_id
+            type: integer
+            options:
+              default: 1
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+      - type: db_schema
+        table: users
+        expect:
+          - name: name
+            type: string
+          - name: password_digest
+            type: string
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+  - name: "[HTTP] ルーティング検証"
+    tasks:
+      - type: http_get_status
         path: /
         expect: 200
-      - type: get
+      - type: http_get_status
         path: /signup
         expect: 200
-      - type: get
+      - type: http_get_status
         path: /signin
         expect: 200
-      - type: get
+      - type: http_get_status
         path: /signout
         expect: 302
-      - type: get
+      - type: http_get_status
         path: /tasks/new
         expect: 200
-      - type: get
+      - type: http_get_status
         path: /tasks/0/star
         expect: 500
-      - type: get
+      - type: http_get_status
         path: /tasks/0/edit
         expect: 500
-      - type: get
+      - type: http_get_status
         path: /tasks/over
         expect: 500
-      - type: get
+      - type: http_get_status
         path: /tasks/done
         expect: 500
-  - name: "未ログイン時はタスクが生成されない"
+  - name: "[HTTP] 未ログイン時はタスクが生成されない"
     tasks:
-      - type: post
+      - type: http_post_status
         path: /tasks
         body:
           due_date: "2030-01-01"
           list: プライベート
           title: タスク1
         expect: 303
-      - type: database
+      - type: db_select
         table: tasks
         where:
           title: タスク1
         expect: null
-  - name: "アカウント生成"
+  - name: "[HTTP] アカウント生成"
     tasks:
-      - type: post
+      - type: http_post_status
         path: /signup
         expect: 303
         body:
           name: menou_user
           password: password
           password_confirm: password
-      - type: database
+      - type: db_where
         table: users
         where:
           id: 1
         expect:
           name: menou_user
-  - name: "タスク生成 & ログイン確認"
+  - name: "[HTTP] タスク生成 & ログイン確認"
     tasks:
-      - type: post
+      - type: http_post_status
         path: /tasks
         body:
           due_date: "2030-01-01"
           list: 1
           title: タスク1
         expect: 303
-      - type: database
+      - type: db_where
         table: tasks
         where:
           id: 1

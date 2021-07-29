@@ -107,7 +107,13 @@ tests:
           next: 有楽町
   - name: "[API] 次の駅を取得するAPI [存在しない路線]"
     tasks:
-      - type: get_json_api
+      - type: http_get_status
+        path: /api/station
+        query:
+          line: JR山ノ手線
+          name: 東京
+        expect: 200
+      - type: http_get_json
         path: /api/station
         query:
           line: JR山ノ手線
