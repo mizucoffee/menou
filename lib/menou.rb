@@ -99,7 +99,6 @@ class Menou
       end
 
       @results.push test_tb.results
-      # test_tb = MenouTaskBlock.new test['name'], @callback
       
       # test['tasks'].each do |task|
       #   case task['type']
@@ -138,37 +137,6 @@ class Menou
       #       task['expect'].each do |k, v|
       #         error.call "Unexpected value: #{k}=\"#{json[k]}\", expected: \"#{v}\"" if v != json[k]
       #       end
-      #     end
-      #   when 'get_html'
-      #     test_tb.task("GET #{task['path']} as HTML") do |success, error|
-      #       query = (task['query'].nil?) ? "" : URI.encode_www_form(task['query'])
-      #       options = Selenium::WebDriver::Chrome::Options.new
-      #       options.add_argument('--headless')
-      #       driver = Selenium::WebDriver.for :chrome, options: options
-      #       driver.get "http://localhost:4567" + task['path'] + "?" + query
-
-      #       task['expects'].each do |expect|
-      #         case expect['target']
-      #         when 'page_title'
-      #           error.call "Unexpected page title: \"#{driver.title}\", expected: \"#{expect['expect']}\"" if driver.title != expect['expect']
-      #         when 'content'
-      #           elements = driver.find_elements(:css, expect['selector']) rescue nil
-      #           next error.call "No such element: #{expect['selector']}" if elements.nil?
-      #           contents = elements.map { |a| a.text }
-      #           expect['expect'].each_with_index do |e, i|
-      #             error.call "Unexpected value: #{expect['selector']}[#{i}]=\"#{contents[i]}\", expected: \"#{e}\"" if contents[i] != e
-      #           end
-      #         when 'displayed'
-      #           elements = driver.find_elements(:css, expect['selector']) rescue nil
-      #           next error.call "No such element: #{expect['selector']}" if elements.nil?
-
-      #           elements.each do |e|
-      #             error.call "Unexpected status: '#{expect['selector']}'.displayed=#{e.displayed?}, expected: #{expect['expect']}" unless e.displayed? == expect['expect']
-      #           end
-      #         end
-      #       end
-
-      #       driver.quit
       #     end
       #   end
       # end

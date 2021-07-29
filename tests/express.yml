@@ -27,7 +27,7 @@ tests:
     tasks:
       - type: db_schema
         table: histories
-        columns:
+        expect:
           - name: x
             type: float
           - name: y
@@ -46,9 +46,9 @@ tests:
               "null": false
   - name: "[UI] トップページ"
     tasks:
-      - type: get_html
+      - type: dom
         path: /
-        expects:
+        expect:
           - target: page_title
             expect: Express
           - target: displayed
@@ -62,12 +62,14 @@ tests:
             expect: true
   - name: "[UI] 次の駅を取得するページ"
     tasks:
-      - type: get_html
+      - type: dom
         path: /list
         query:
           x: 135.51077935867468
           y: 34.71098733537241
-        expects:
+        expect:
+          - target: page_title
+            expect: Express
           - target: content
             selector: .name
             expect:
@@ -88,8 +90,6 @@ tests:
             selector: .container-fluid>h2
             expect:
               - 135.51077935867468,34.71098733537241の最寄駅
-          - target: page_title
-            expect: Express
   - name: "[API] 次の駅を取得するAPI"
     tasks:
       - type: get_json_api

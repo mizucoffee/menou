@@ -9,7 +9,7 @@ register_test('db_schema') do |option, test_tb, path|
 
   columns = ActiveRecord::Base.connection.columns(option['table'])
 
-  option['columns'].each do |col|
+  option['expect'].each do |col|
     test_tb.task("#{table_name}##{col['name']}の型確認") do |error|
       res = columns.find { |c| c.name == col['name'] }
       next error.call "カラムが存在しません" if res.nil?
