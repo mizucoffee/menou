@@ -98,7 +98,7 @@ tests:
           line: JR山手線
           name: 東京
         expect: 200
-      - type: get_json_api
+      - type: http_get_json
         path: /api/station
         query:
           line: JR山手線

@@ -16,22 +16,10 @@ class Menou
   def initialize(test_name)
     @results = []
     @test = YAML.load_file("tests/#{test_name}.yml")
-
-    @client = Faraday.new 'http://localhost:4567' do |b|
-      b.use :cookie_jar
-      b.adapter Faraday.default_adapter
-    end
   end
 
   def result
     @results
-  end
-
-  def post_form(path, body)
-    @client.post(path) do |req|
-      req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-      req.body = URI.encode_www_form body
-    end
   end
 
   def set_path(path)
@@ -53,7 +41,6 @@ class Menou
 
   def start
     prepare_env
-    # schema_test
     main_test
     kill
   end
@@ -125,17 +112,6 @@ class Menou
 
       #       task['expect'].each do |k, v|
       #         error.call "Unexpected value: #{task['table'].classify}.#{k}=\"#{result[k]}\", expected: \"#{v}\"" if result[k].to_s != v.to_s
-      #       end
-      #     end
-      #   when 'get_json_api'
-      #     test_tb.task("GET #{task['path']} as JSON API") do |success, error|
-      #       query = (task['query'].nil?) ? "" : URI.encode_www_form(task['query'])
-      #       res = @client.get task['path'] + "?" + query
-      #       json = JSON.parse(res.body) rescue nil
-      #       next error.call "Invalid JSON" if json.nil?
-
-      #       task['expect'].each do |k, v|
-      #         error.call "Unexpected value: #{k}=\"#{json[k]}\", expected: \"#{v}\"" if v != json[k]
       #       end
       #     end
       #   end
