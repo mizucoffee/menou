@@ -22,3 +22,18 @@ register_test('db_schema') do |option, test_tb, path|
     end
   end
 end
+
+# register_test('db_select') do |option, test_tb, path|
+#   test_tb.task("Database #{task['table'].classify} where: #{task['where'].map {|k, v| "#{k}=\"#{v}\""}.join ', '}") do |success, error|
+#     table_class = task['table'].classify.constantize rescue nil
+#     next error.call "Table not found" if table_class.nil?
+
+#     result = table_class.find_by(task['where'])
+#     next success.call if task['expect'].nil? and result.nil?
+#     next error.call "Record not found" if result.nil?
+
+#     task['expect'].each do |k, v|
+#       error.call "Unexpected value: #{task['table'].classify}.#{k}=\"#{result[k]}\", expected: \"#{v}\"" if result[k].to_s != v.to_s
+#     end
+#   end
+# end

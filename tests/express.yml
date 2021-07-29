@@ -1,5 +1,5 @@
 ---
-name: express apps # ページ名比較
+name: express apps
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
@@ -92,6 +92,12 @@ tests:
               - 135.51077935867468,34.71098733537241の最寄駅
   - name: "[API] 次の駅を取得するAPI"
     tasks:
+      - type: http_get_status
+        path: /api/station
+        query:
+          line: JR山手線
+          name: 東京
+        expect: 200
       - type: get_json_api
         path: /api/station
         query:
