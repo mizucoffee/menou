@@ -1,0 +1,110 @@
+---
+name: express apps # ページ名比較
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        files:
+          - app.rb
+          - models.rb
+          - db/migrate/*_create_histories.rb
+          - db/migrate/*_add_favorite.rb
+          - public/favicon.ico
+          - public/logo.png
+          - public/style.css
+          - views/form.erb
+          - views/list.erb
+  - name: "[FILE] 画像ファイルのハッシュ検証"
+    tasks:
+      - type: file_hash
+        files:
+          - public/logo.png
+          - public/favicon.ico
+        expect:
+          - 77a4cfd23fa155ca95a6d1cdfe9643c6f10379e9c102f50429f0e1b886c35500
+          - d7919ba6bdd7af8e1afc9b6e443f7d939fd4bc588d36180f582ca5afdfc07805
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: histories
+        columns:
+          - name: x
+            type: float
+          - name: y
+            type: float
+          - name: favorite
+            type: boolean
+            options:
+              default: false
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+  - name: "[UI] トップページ"
+    tasks:
+      - type: get_html
+        path: /
+        expects:
+          - target: page_title
+            expect: Express
+          - target: displayed
+            selector: input#x
+            expect: true
+          - target: displayed
+            selector: input#y
+            expect: true
+          - target: displayed
+            selector: button[type="submit"]
+            expect: true
+  - name: "[UI] 次の駅を取得するページ"
+    tasks:
+      - type: get_html
+        path: /list
+        query:
+          x: 135.51077935867468
+          y: 34.71098733537241
+        expects:
+          - target: content
+            selector: .name
+            expect:
+              - 天神橋筋六丁目
+              - 天神橋筋六丁目
+              - 天神橋筋六丁目
+              - 中崎町
+              - 天満
+          - target: content
+            selector: .line
+            expect:
+              - 大阪谷町線
+              - 阪急千里線
+              - 大阪堺筋線
+              - 大阪谷町線
+              - JR大阪環状線
+          - target: content
+            selector: .container-fluid>h2
+            expect:
+              - 135.51077935867468,34.71098733537241の最寄駅
+          - target: page_title
+            expect: Express
+  - name: "[API] 次の駅を取得するAPI"
+    tasks:
+      - type: get_json_api
+        path: /api/station
+        query:
+          line: JR山手線
+          name: 東京
+        expect:
+          next: 有楽町
+  - name: "[API] 次の駅を取得するAPI [存在しない路線]"
+    tasks:
+      - type: get_json_api
+        path: /api/station
+        query:
+          line: JR山ノ手線
+          name: 東京
+        expect:
+          error: "No Station."

@@ -13,6 +13,7 @@ GEM
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
     bcrypt (3.1.16)
+    childprocess (3.0.0)
     concurrent-ruby (1.1.9)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
@@ -50,6 +51,10 @@ GEM
     pg (1.2.3)
     rchardet (1.8.0)
     ruby2_keywords (0.0.5)
+    rubyzip (2.3.2)
+    selenium-webdriver (3.142.7)
+      childprocess (>= 0.5, < 4.0)
+      rubyzip (>= 1.2.2)
     tty-color (0.6.0)
     tty-cursor (0.7.1)
     tty-spinner (0.9.3)
@@ -73,6 +78,7 @@ DEPENDENCIES
   git (~> 1.5)
   pastel
   pg
+  selenium-webdriver
   tty-spinner
 
 BUNDLED WITH

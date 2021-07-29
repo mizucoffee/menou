@@ -71,60 +71,82 @@ tables:
         "null": false
 tests:
   # 初期状態ルーティング
-  - type: get
-    path: /
-    expect: 200
-  - type: get
-    path: /signup
-    expect: 200
-  - type: get
-    path: /signin
-    expect: 200
-  - type: get
-    path: /signout
-    expect: 302
-  - type: get
-    path: /tasks/new
-    expect: 200
-  - type: get
-    path: /tasks/0/star
-    expect: 500
-  - type: get
-    path: /tasks/0/edit
-    expect: 500
-  - type: get
-    path: /tasks/over
-    expect: 500
-  - type: get
-    path: /tasks/done
-    expect: 500
-  - name: "未ログイン時は生成されない(before)"
-    type: post
-    path: /tasks
-    body:
-      due_date: "2030-01-01"
-      list: "プライベート"
-      title: "タスク1"
-    expect: 303
-  - type: database
-    table: tasks
-    where:
-      title: "タスク1"
-    expect: null
-
-  # 扱い
-  - type: post
-    path: /signup
-    expect: 303
-    body:
-      name: menou_user
-      password: password
-      password_confirm: password
-  - type: database
-    table: users
-    where:
-      id: 1
-    expect:
-      name: menou_user
-  - type: screenshot
-    path: /
+  - name: "初期状態ルーティングテスト"
+    tasks:
+      - type: get
+        path: /
+        expect: 200
+      - type: get
+        path: /signup
+        expect: 200
+      - type: get
+        path: /signin
+        expect: 200
+      - type: get
+        path: /signout
+        expect: 302
+      - type: get
+        path: /tasks/new
+        expect: 200
+      - type: get
+        path: /tasks/0/star
+        expect: 500
+      - type: get
+        path: /tasks/0/edit
+        expect: 500
+      - type: get
+        path: /tasks/over
+        expect: 500
+      - type: get
+        path: /tasks/done
+        expect: 500
+  - name: "未ログイン時はタスクが生成されない"
+    tasks:
+      - type: post
+        path: /tasks
+        body:
+          due_date: "2030-01-01"
+          list: プライベート
+          title: タスク1
+        expect: 303
+      - type: database
+        table: tasks
+        where:
+          title: タスク1
+        expect: null
+  - name: "アカウント生成"
+    tasks:
+      - type: post
+        path: /signup
+        expect: 303
+        body:
+          name: menou_user
+          password: password
+          password_confirm: password
+      - type: database
+        table: users
+        where:
+          id: 1
+        expect:
+          name: menou_user
+  - name: "タスク生成 & ログイン確認"
+    tasks:
+      - type: post
+        path: /tasks
+        body:
+          due_date: "2030-01-01"
+          list: 1
+          title: タスク1
+        expect: 303
+      - type: database
+        table: tasks
+        where:
+          id: 1
+        expect:
+          due_date: "2030-01-01"
+          list_id: 1
+          title: タスク1
+  - name: "スクリーンショット撮影"
+    tasks:
+      - type: screenshot
+        path: /
