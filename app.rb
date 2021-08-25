@@ -42,6 +42,7 @@ post '/test' do
   menou.start
 
   @result = {}
+  @result[:screenshots] = menou.screenshots
   @result[:results] = menou.result
   @result[:results].map!{ |r|
     r[:failed] = r[:result].filter { |result| !result[:success] }

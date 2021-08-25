@@ -15,12 +15,17 @@ class Menou
 
   def initialize(test_name)
     @results = []
+    @screenshots = []
     @branch = 'master'
     @test = YAML.load_file("tests/#{test_name}.yml")
   end
 
   def result
     @results
+  end
+
+  def screenshots
+    @screenshots
   end
 
   def path(path)
@@ -52,6 +57,7 @@ class Menou
   def start
     prepare_env
     main_test
+    screenshot
     kill
   end
 
@@ -81,10 +87,6 @@ class Menou
     end
   end
 
-  def kill
-    Process.kill("KILL", @pid)
-  end
-
   def main_test
     @test['tests'].each do |test|
       test_tb = MenouTaskBlock.new test['name'], @callback
@@ -96,6 +98,28 @@ class Menou
 
       @results.push test_tb.results
     end
+  end
+
+  def screenshot
+    @test['screenshots'].each do |sc|
+      query = (sc['query'].nil?) ? "" : "?" + URI.encode_www_form(sc['query'])
+      options = Selenium::WebDriver::Chrome::Options.new
+      options.add_argument('--headless')
+      options.add_argument('--window-size=1920,1080')
+      driver = Selenium::WebDriver.for :chrome, options: options
+      driver.get "http://localhost:4567" + sc['path'] + query
+
+      res = {
+        path: sc['path'] + query,
+        image: driver.screenshot_as(:base64)
+      }
+      @screenshots.push res
+      driver.quit
+    end
+  end
+
+  def kill
+    Process.kill("KILL", @pid)
   end
 end
 

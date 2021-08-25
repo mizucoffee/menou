@@ -48,3 +48,8 @@ tests:
             selector: p>a
             expect:
               - Ruby
+screenshots:
+  - path: /
+  - path: /
+    query:
+      keyword: Ruby
