@@ -22,8 +22,12 @@ class Menou
     @results
   end
 
-  def set_path(path)
+  def path(path)
     @path = path
+  end
+
+  def set_path(path)
+    @path = "#{@path}/#{path}"
   end
 
   def git_clone(repo_url)
@@ -35,7 +39,7 @@ class Menou
     FileUtils.rm_r(@path)
   end
 
-  def set_callback(&cb)
+  def callback(&cb)
     @callback = cb
   end
 
@@ -48,6 +52,7 @@ class Menou
   def prepare_env
     Bundler.with_original_env do
       prepare_tb = MenouTaskBlock.new "環境準備", @callback
+      FileUtils.rm_f("#{@path}/Gemfile.lock")
       prepare_tb.task('$ bundle install') { Open3.capture2e('bundle install', :chdir => @path) }
       prepare_tb.task('$ rake db:create') { Open3.capture2e('rake db:create', :chdir => @path) }
       prepare_tb.task('$ rake db:migrate:reset') { Open3.capture2e('rake db:migrate:reset', :chdir => @path) }
@@ -59,8 +64,10 @@ class Menou
       }
 
       prepare_tb.task('Ruby起動') {
-        stdout, stdin, @pid = PTY.spawn('RACK_ENV=development ruby app.rb -o 0.0.0.0', :chdir => @path)
-        stdout.any? { |l| l.include?("HTTPServer#start") } 
+        stdout, stdin, @pid = PTY.spawn('RACK_ENV=development ruby app.rb -o 0.0.0.0 -p 4567', :chdir => @path)
+        stdout.any? { |l|
+          l.include?("HTTPServer#start")
+        }
         Thread.start do stdout.each do end end
       }
       @results.push prepare_tb.results
@@ -70,10 +77,6 @@ class Menou
   def kill
     Process.kill("KILL", @pid)
   end
-
-  # ==========================================
-  # Test
-  # ==========================================
 
   def main_test
     @test['tests'].each do |test|
@@ -106,8 +109,8 @@ class MenouTaskBlock
     done = false
     task = MenouTask.new @@count, task_title, @block_title, @callback
     @tasks.push task
-    error = Proc.new do |message|
-      errors.push message
+    error = Proc.new do |message, result, expect|
+      errors.push({ message: message, result: result, expect: expect })
     end
     block.call error
 
@@ -159,7 +162,3 @@ end
 Dir[File.expand_path('../tests', __FILE__) << '/*.rb'].each do |file|
   require file
 end
-
-# 何が期待しなかったものか = title
-# 何だったら正しいのか Express
-# 何が来たのか test

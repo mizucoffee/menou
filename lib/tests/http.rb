@@ -12,7 +12,7 @@ register_test('http_get_status') do |option, test_tb, path|
 
   test_tb.task("GET #{option['path']}") do |error|
     res = client.get url
-    error.call "ステータスコードが正しくありません 結果: #{res.status} 期待する値: #{option['expect']}" if res.status != option['expect']
+    error.call "ステータスコードが正しくありません", res.status, option['expect'] if res.status != option['expect']
   end
 end
 
@@ -25,7 +25,7 @@ register_test('http_get_json') do |option, test_tb, path|
     next error.call "JSON形式ではありません" if json.nil?
 
     option['expect'].each do |k, v|
-      error.call "'#{k}'の値が正しくありません 結果: '#{json[k]}' 期待する値: '#{v}'" if v != json[k]
+      error.call "'#{k}'の値が正しくありません", json[k], v if v != json[k]
     end
   end
 end
@@ -38,7 +38,7 @@ register_test('http_post_status') do |option, test_tb, path|
       req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
       req.body = URI.encode_www_form option['body']
     end
-    error.call "ステータスコードが正しくありません 結果: #{res.status} 期待する値: #{option['expect']}" if res.status != option['expect']
+    error.call "ステータスコードが正しくありません", res.status, option['expect'] if res.status != option['expect']
   end
 end
 
@@ -54,7 +54,7 @@ register_test('http_post_json') do |option, test_tb, path|
     next error.call "JSON形式ではありません" if json.nil?
 
     option['expect'].each do |k, v|
-      error.call "'#{k}'の値が正しくありません 結果: '#{json[k]}' 期待する値: '#{v}'" if v != json[k]
+      error.call "'#{k}'の値が正しくありません", json[k], v if v != json[k]
     end
   end
 end
