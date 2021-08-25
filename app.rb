@@ -35,6 +35,7 @@ post '/test' do
   menou = Menou.new params[:type]
   menou.git_clone params[:repo]
   menou.set_path params[:path] if params[:path]
+  menou.set_branch params[:branch] if params[:branch]
   menou.callback do |id ,title, type, status, messages|
 
   end
@@ -47,10 +48,7 @@ post '/test' do
     r[:score] = r[:result].size - r[:failed].size
     r
   }
-  @result[:score] = @result[:results].inject(0) { |a, b|
-    next a if b[:task_group_name] == "環境準備"
-    a + b[:score]
-  }
+  @result[:score] = @result[:results].inject(0) { |a, b| a + b[:score] }
 
   erb :result
 end

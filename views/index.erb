@@ -17,6 +17,9 @@
   .container {
     max-width: 80rem;
   }
+  .red {
+    color: red;
+  }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/faye@1.4.0/client/faye-browser-min.js"></script>
   <script>
@@ -32,14 +35,17 @@
   <section class="container">
     <form method="post" action="/test">
       <fieldset>
-        <label for="repo">GitHub Repository</label>
+        <label for="repo">GitHub Repository<span class="red">*</span></label>
         <input type="text" placeholder="https://github.com/mizucoffee/todo_app" id="repo" name="repo">
         <label for="path">Path</label>
         <input type="text" placeholder="express" id="path" name="path">
-        <label for="type">Type</label>
+        <label for="branch">Branch</label>
+        <input type="text" id="branch" name="branch">
+        <label for="type">Type<span class="red">*</span></label>
         <select id="type" name="type">
           <option value="todo">todo</option>
           <option value="express">express</option>
+          <option value="wikipedia">wikipedia</option>
         </select>
         <input class="button-primary" type="submit" value="Send">
       </fieldset>

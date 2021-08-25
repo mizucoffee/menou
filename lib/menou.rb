@@ -15,6 +15,7 @@ class Menou
 
   def initialize(test_name)
     @results = []
+    @branch = 'master'
     @test = YAML.load_file("tests/#{test_name}.yml")
   end
 
@@ -30,9 +31,14 @@ class Menou
     @path = "#{@path}/#{path}"
   end
 
+  def set_branch(branch)
+    @branch = branch
+  end
+
   def git_clone(repo_url)
     @path = Dir.mktmpdir
-    Git.clone(repo_url, @path)
+    g = Git.clone(repo_url, @path)
+    g.branch(@branch).checkout
   end
 
   def clean_up
@@ -59,6 +65,7 @@ class Menou
       prepare_tb.task('$ rake db:seed') { Open3.capture2e('rake db:seed', :chdir => @path) }
 
       prepare_tb.task('DB接続') {
+        next unless Dir["#{@path}/config/database.yml"].any?
         ActiveRecord::Base.configurations = YAML.load_file("#{@path}/config/database.yml")
         require "#{@path}/models"
       }

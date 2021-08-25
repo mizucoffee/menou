@@ -1,0 +1,50 @@
+---
+name: wikipedia apps
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        files:
+          - views/index.erb
+          - Gemfile
+          - app.rb
+          - config.ru
+  - name: "[UI] トップページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: page_title
+            expect: Wikipedia
+          - target: displayed
+            selector: form[action="/"][method="get"]
+            expect: true
+          - target: displayed
+            selector: form>input[type="text"][name="keyword"]
+            expect: true
+          - target: displayed
+            selector: form>input[type="submit"][value="検索"]
+            expect: true
+  - name: "[UI] 検索結果表示"
+    tasks:
+      - type: dom
+        path: /
+        query:
+          keyword: Ruby
+        expect:
+          - target: page_title
+            expect: Wikipedia
+          - target: displayed
+            selector: p>strong
+            expect: true
+          - target: displayed
+            selector: p>a
+            expect: true
+          - target: content
+            selector: p>strong
+            expect:
+              - Ruby
+          - target: content
+            selector: p>a
+            expect:
+              - Ruby

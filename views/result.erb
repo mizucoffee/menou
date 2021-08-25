@@ -50,30 +50,21 @@
   hr {
     margin: 2rem 0px;
   }
+  .score {
+    font-size: 2.2rem;
+  }
   </style>
 </head>
 <body>
   <img src="menou_logo.png" class="logo" alt="Menou">
   <section class="container">
     <h2>概要</h2>
-    <h3>スコア: <span class="<%= @result[:score] == @result[:results].size ? "green" : "red" %>"><%= @result[:score] %>/<%= @result[:results].inject(0) { |a, b| a + b[:result].size } %></span></h3>
-    <h3>エラー抜粋</h3>
-    <% @result[:results].filter{ |res| res[:score] != res[:result].size }.each do |result| %>
-      <h4><%= result[:task_group_name] %></h4>
-      <% result[:failed].each do |task| %>
-        <h5 class="red">&nbsp;✘&nbsp;<%= task[:task] %></h5>
-        <% if task[:messages] %>
-          <p><%= task[:messages].map{ |mes| "内容: #{mes[:message]}" + (mes[:expect].nil? ? "" : "<br>結果: #{mes[:result]}<br>期待する値: #{mes[:expect]}") }.join '<br>' %></p>
-        <% end%>
-      <% end %>
-      <hr>
-    <% end %>
-  </section>
-  <section class="container">
-    <h2>結果詳細</h2>
-    <br>
+    <h3>スコア:</h3>
+    <p class="<%= @result[:score] == @result[:results].inject(0) { |a, b| a + b[:result].size } ? "green" : "red" %> score"><%= @result[:score] %>/<%= @result[:results].inject(0) { |a, b| a + b[:result].size } %></p>
+    <hr>
+    <h3>詳細:</h3>
     <% @result[:results].each do |result| %>
-      <details>
+      <details <%= "open" if result[:score] != result[:result].size %>>
         <summary><h4 class="<%= result[:score] == result[:result].size ? "green" : "red" %>"><%= result[:task_group_name] %> <%= result[:score] %>/<%= result[:result].size %></h4></summary>
         <% result[:result].each do |task| %>
           <h5 class="<%= task[:success] ? "green" : "red" %>"><%= task[:success] ? "✓" : "&nbsp;✘&nbsp;" %><%= task[:task] %></h5>
