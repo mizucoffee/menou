@@ -1,0 +1,118 @@
+---
+name: count app
+models: /models/count.rb
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        files:
+          - db/migrate/*_create_counts.rb
+          - models/count.rb
+          - public/assets/css/count.css
+          - public/assets/css/bootstrap.css
+          - public/assets/css/bootstrap.css.map
+          - public/assets/css/bootstrap.min.css
+          - public/assets/css/bootstrap-theme.css
+          - public/assets/css/bootstrap-theme.css.map
+          - public/assets/css/bootstrap-theme.min.css
+          - public/assets/fonts/glyphicons-halflings-regular.eot
+          - public/assets/fonts/glyphicons-halflings-regular.svg
+          - public/assets/fonts/glyphicons-halflings-regular.ttf
+          - public/assets/fonts/glyphicons-halflings-regular.woff
+          - public/assets/fonts/glyphicons-halflings-regular.woff2
+          - public/assets/js/bootstrap.js
+          - public/assets/js/bootstrap.min.js
+          - public/assets/js/npm.js
+          - views/index.erb
+          - Gemfile
+          - Rakefile
+          - app.rb
+          - config.ru
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: counts
+        expect:
+          - name: number
+            type: integer
+            options:
+              default: 0
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+  - name: "[UI] トップページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: page_title
+            expect: Document
+          - target: displayed
+            selector: h1
+            expect: true
+          - target: displayed
+            selector: form[action="/plus"][method="POST"]
+            expect: true
+          - target: displayed
+            selector: form[action="/minus"][method="POST"]
+            expect: true
+          - target: displayed
+            selector: form>input[type="submit"][value="+"]
+            expect: true
+          - target: displayed
+            selector: form>input[type="submit"][value="-"]
+            expect: true
+          - target: content
+            selector: h1
+            expect:
+              - 0
+          - target: screenshot
+            name: トップページ
+      - type: http_post_status
+        path: /plus
+        expect: 303
+      - type: dom
+        path: /
+        expect:
+          - target: content
+            selector: h1
+            expect:
+              - 1
+      - type: http_post_status
+        path: /minus
+        expect: 303
+      - type: dom
+        path: /
+        expect:
+          - target: content
+            selector: h1
+            expect:
+              - 0
+  - name: "[TRANSITION] 検索"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: content
+            selector: h1
+            expect:
+              - 0
+          - target: click
+            selector: form>input[type="submit"][value="+"]
+          - target: content
+            selector: h1
+            expect:
+              - 1
+          - target: screenshot
+            name: トップページ（+1カウントした状態）
+          - target: click
+            selector: form>input[type="submit"][value="-"]
+          - target: content
+            selector: h1
+            expect:
+              - 0

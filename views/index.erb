@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+  <title>Menou</title>
+  <style>
+  .logo {
+    width: 300px;
+    margin: 64px auto;
+    display: block;
+  }
+  .container {
+    max-width: 80rem;
+  }
+  .red {
+    color: red;
+  }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/faye@1.4.0/client/faye-browser-min.js"></script>
+  <script>
+    // var client = new Faye.Client('http://localhost:8080/status');
+
+    // client.subscribe('/messages', function(message) {
+    //   alert('Got a message: ' + message.text);
+    // });
+  </script>
+</head>
+<body>
+  <img src="menou_logo.png" class="logo" alt="Menou">
+  <section class="container">
+    <form method="post" action="/test">
+      <fieldset>
+        <label for="repo">GitHub Repository<span class="red">*</span></label>
+        <input type="text" placeholder="https://github.com/mizucoffee/todo_app" id="repo" name="repo">
+        <label for="path">Path</label>
+        <input type="text" placeholder="express" id="path" name="path">
+        <label for="branch">Branch</label>
+        <input type="text" id="branch" name="branch">
+        <label for="type">Type<span class="red">*</span></label>
+        <select id="type" name="type">
+          <option value="01_count" selected>01_count</option>
+          <option value="03_wikipedia">03_wikipedia</option>
+          <option value="08_express">08_express</option>
+          <option value="10_login">10_login</option>
+          <option value="16_todo">16_todo</option>
+        </select>
+        <input class="button-primary" type="submit" value="Send">
+      </fieldset>
+    </form>
+  </section>
+</body>
+</html>

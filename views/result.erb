@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+  <title>Menou</title>
+  <style>
+  .logo {
+    width: 300px;
+    margin: 64px auto;
+    display: block;
+  }
+  .container {
+    max-width: 80rem;
+  }
+  .green {
+    color: #669866;
+  }
+  .red {
+    color: #b56363;
+  }
+  summary {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary {
+    list-style: none;
+    text-decoration: none;
+  }
+  .container {
+    margin-top: 32px;
+    margin-bottom: 32px;
+  }
+  h4 {
+    margin-bottom: 1.5rem;
+  }
+  h5 {
+    margin-bottom: 0.2rem;
+    margin-top: 1.5rem;
+  }
+  p {
+    margin-bottom: 1.5rem;
+  }
+  hr {
+    margin: 2rem 0px;
+  }
+  h3+p {
+    font-size: 2.2rem;
+  }
+  .screenshot {
+    border: solid 1px #aaa;
+    cursor: pointer;
+  }
+  .full {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    background: rgba(0,0,0,0.7);
+    object-fit: contain;
+    padding: 5vmin;
+  }
+  </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.screenshot').forEach(e => {
+        e.addEventListener('click', () => {
+          e.classList.toggle('full')
+        })
+      })
+    })
+  </script>
+</head>
+<body>
+  <a href="/"><img src="menou_logo.png" class="logo" alt="Menou"></a>
+  <section class="container">
+    <h2>概要</h2>
+    <h3>ターゲット:</h3>
+    <p><%= @result[:test_name] %></p>
+    <hr>
+    <h3>リポジトリ:</h3>
+    <p><%= @result[:repo] %></p>
+    <hr>
+    <h3>スコア:</h3>
+    <p class="<%= @result[:score] == @result[:results].inject(0) { |a, b| a + b[:result].size } ? "green" : "red" %> score"><%= @result[:score] %>/<%= @result[:results].inject(0) { |a, b| a + b[:result].size } %></p>
+    <hr>
+    <h3>詳細:</h3>
+    <% @result[:results].each do |result| %>
+      <details <%= "open" if result[:score] != result[:result].size %>>
+        <summary><h4 class="<%= result[:score] == result[:result].size ? "green" : "red" %>"><%= result[:task_group_name] %> <%= result[:score] %>/<%= result[:result].size %></h4></summary>
+        <% result[:result].each do |task| %>
+          <h5 class="<%= task[:success] ? "green" : "red" %>"><%= task[:success] ? "✓" : "&nbsp;✘&nbsp;" %><%= task[:task] %></h5>
+          <% if task[:messages] %>
+            <p><%= task[:messages].map{ |mes| "内容: #{mes[:message]}" + (mes[:expect].nil? ? "" : "<br>結果: #{mes[:result]}<br>期待する値: #{mes[:expect]}") }.join '<br>' %></p>
+          <% end%>
+        <% end %>
+      </details>
+      <hr>
+    <% end %>
+    <h3>スクリーンショット</h3>
+    <% @result[:screenshots].each do |sc| %>
+      <h4><%= sc[:path] %></h4>
+      <img class="screenshot" src="data:image/png;base64,<%= sc[:image] %>" >
+    <% end %>
+  </section>
+</body>
+</html>
