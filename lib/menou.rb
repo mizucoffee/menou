@@ -32,18 +32,23 @@ class Menou
     @path = path
   end
 
+  def test_name
+    @test['name']
+  end
+
   def set_path(path)
     @path = "#{@path}/#{path}"
   end
 
-  def set_branch(branch)
+  def checkout_branch(branch)
     @branch = branch
+    @git.branch(@branch).checkout
+    @git.pull('origin',@branch)
   end
 
   def git_clone(repo_url)
     @path = Dir.mktmpdir
-    g = Git.clone(repo_url, @path)
-    g.branch(@branch).checkout
+    @git = Git.clone(repo_url, @path)
   end
 
   def clean_up
@@ -71,9 +76,10 @@ class Menou
       prepare_tb.task('$ rake db:seed') { Open3.capture2e('rake db:seed', :chdir => @path) }
 
       prepare_tb.task('DB接続') {
-        next unless Dir["#{@path}/config/database.yml"].any?
+        next unless File.exist?("#{@path}/config/database.yml")
+        next if @test['models'].nil?
         ActiveRecord::Base.configurations = YAML.load_file("#{@path}/config/database.yml")
-        require "#{@path}/models"
+        require "#{@path}#{@test['models']}"
       }
 
       prepare_tb.task('Ruby起動') {
@@ -101,6 +107,7 @@ class Menou
   end
 
   def screenshot
+    return if @test['screenshots'].nil?
     @test['screenshots'].each do |sc|
       query = (sc['query'].nil?) ? "" : "?" + URI.encode_www_form(sc['query'])
       options = Selenium::WebDriver::Chrome::Options.new
@@ -108,6 +115,12 @@ class Menou
       options.add_argument('--window-size=1920,1080')
       driver = Selenium::WebDriver.for :chrome, options: options
       driver.get "http://localhost:4567" + sc['path'] + query
+
+      unless sc['click'].nil?
+        e = driver.find_element(:css, sc['click'])
+        e.click
+        sleep 1
+      end
 
       res = {
         path: sc['path'] + query,

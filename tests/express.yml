@@ -1,5 +1,6 @@
 ---
 name: express apps
+models: /models.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
@@ -14,15 +15,6 @@ tests:
           - public/style.css
           - views/form.erb
           - views/list.erb
-  - name: "[FILE] 画像ファイルのハッシュ検証"
-    tasks:
-      - type: file_hash
-        files:
-          - public/logo.png
-          - public/favicon.ico
-        expect:
-          - 77a4cfd23fa155ca95a6d1cdfe9643c6f10379e9c102f50429f0e1b886c35500
-          - d7919ba6bdd7af8e1afc9b6e443f7d939fd4bc588d36180f582ca5afdfc07805
   - name: "[DB] Schema検証"
     tasks:
       - type: db_schema
@@ -89,7 +81,30 @@ tests:
           - target: content
             selector: .container-fluid>h2
             expect:
-              - 135.51077935867468,34.71098733537241の最寄駅
+              - 135.51077935867468, 34.71098733537241の最寄駅
+          - target: click
+            selector: .card
+          - target: wait
+            second: 1
+  - name: "[TRANSITION] 検索"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: input
+            selector: input[name="x"]
+            text: 135.51077935867468
+          - target: input
+            selector: input[name="y"]
+            text: 34.71098733537241
+          - target: click
+            selector: button[value="検索"]
+          - target: wait
+            timeout: 10
+            selector: .container-fluid>h2
+            expect: 135.51077935867468, 34.71098733537241の最寄駅
+          - target: path
+            expect: /list?x=135.51077935867468&y=34.71098733537241
   - name: "[API] 次の駅を取得するAPI"
     tasks:
       - type: http_get_status
@@ -120,3 +135,14 @@ tests:
           name: 東京
         expect:
           error: "No Station."
+screenshots:
+  - path: /
+  - path: /list
+    query:
+      x: 135.51077935867468
+      y: 34.71098733537241
+  - path: /list
+    query:
+      x: 135
+      y: 35
+    click: .card

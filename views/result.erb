@@ -32,6 +32,7 @@
   }
   summary {
     list-style: none;
+    text-decoration: none;
   }
   .container {
     margin-top: 32px;
@@ -50,7 +51,7 @@
   hr {
     margin: 2rem 0px;
   }
-  .score {
+  h3+p {
     font-size: 2.2rem;
   }
   .screenshot {
@@ -79,9 +80,15 @@
   </script>
 </head>
 <body>
-  <img src="menou_logo.png" class="logo" alt="Menou">
+  <a href="/"><img src="menou_logo.png" class="logo" alt="Menou"></a>
   <section class="container">
     <h2>概要</h2>
+    <h3>ターゲット:</h3>
+    <p><%= @result[:test_name] %></p>
+    <hr>
+    <h3>リポジトリ:</h3>
+    <p><%= @result[:repo] %></p>
+    <hr>
     <h3>スコア:</h3>
     <p class="<%= @result[:score] == @result[:results].inject(0) { |a, b| a + b[:result].size } ? "green" : "red" %> score"><%= @result[:score] %>/<%= @result[:results].inject(0) { |a, b| a + b[:result].size } %></p>
     <hr>

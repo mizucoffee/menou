@@ -34,8 +34,8 @@ end
 post '/test' do
   menou = Menou.new params[:type]
   menou.git_clone params[:repo]
-  menou.set_path params[:path] if params[:path]
-  menou.set_branch params[:branch] if params[:branch]
+  menou.set_path params[:path] unless params[:path].empty?
+  menou.checkout_branch params[:branch] unless params[:branch].empty?
   menou.callback do |id ,title, type, status, messages|
 
   end
@@ -50,6 +50,8 @@ post '/test' do
     r
   }
   @result[:score] = @result[:results].inject(0) { |a, b| a + b[:score] }
+  @result[:test_name] = menou.test_name
+  @result[:repo] = params[:repo]
 
   erb :result
 end

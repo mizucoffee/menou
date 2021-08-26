@@ -1,5 +1,6 @@
 ---
 name: todo apps
+models: /models/count.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
@@ -149,7 +150,5 @@ tests:
           due_date: "2030-01-01"
           list_id: 1
           title: タスク1
-  - name: "スクリーンショット撮影"
-    tasks:
-      - type: screenshot
-        path: /
+screenshots:
+  - path: /
