@@ -117,9 +117,11 @@ class Menou
       driver.get "http://localhost:4567" + sc['path'] + query
 
       unless sc['click'].nil?
-        e = driver.find_element(:css, sc['click'])
-        e.click
-        sleep 1
+        elements = driver.find_elements(:css, sc['click'])
+        unless elements.empty?
+          elements[0].click
+          sleep 1
+        end
       end
 
       res = {

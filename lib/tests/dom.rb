@@ -17,7 +17,7 @@ register_test('dom') do |option, test_tb, path|
         next error.call "要素'#{expect['selector']}'が存在しません" if elements.empty?
         contents = elements.map { |a| a.text }
         expect['expect'].each_with_index do |e, i|
-          error.call "要素'#{expect['selector']}[#{i}]'の値が正しくありません", contents[i], e if contents[i] != e
+          error.call "要素'#{expect['selector']}[#{i}]'の値が正しくありません", contents[i], e if "#{contents[i]}" != "#{e}"
         end
       end
     when 'displayed'

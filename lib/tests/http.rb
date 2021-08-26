@@ -36,7 +36,7 @@ register_test('http_post_status') do |option, test_tb, path|
   test_tb.task("POST #{option['path']}") do |error|
     res = client.post(url) do |req|
       req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-      req.body = URI.encode_www_form option['body']
+      req.body = URI.encode_www_form option['body'] unless option['body'].nil?
     end
     error.call "ステータスコードが正しくありません", res.status, option['expect'] if res.status != option['expect']
   end
