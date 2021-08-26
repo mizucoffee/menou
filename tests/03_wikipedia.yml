@@ -1,5 +1,5 @@
 ---
-name: wikipedia apps
+name: wikipedia app
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:

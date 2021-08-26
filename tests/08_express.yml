@@ -1,5 +1,5 @@
 ---
-name: express apps
+name: express app
 models: /models.rb
 tests:
   - name: "[FILE] ファイルの存在確認"

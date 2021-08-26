@@ -1,5 +1,6 @@
 ---
-name: count apps
+name: count app
+models: /models/count.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
@@ -27,6 +28,23 @@ tests:
           - Rakefile
           - app.rb
           - config.ru
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: counts
+        expect:
+          - name: number
+            type: integer
+            options:
+              default: 0
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
   - name: "[UI] トップページ"
     tasks:
       - type: dom

@@ -72,7 +72,7 @@ register_test('dom') do |option, test_tb, path|
             wait.until {
               elements = driver.find_elements(:css, expect['selector'])
               next false if elements.empty?
-              elements[0].text == expect['expect']
+              elements[0].text == expect['expect'] || expect['expect'].nil?
             }
           rescue => exception
             elements = driver.find_elements(:css, expect['selector'])

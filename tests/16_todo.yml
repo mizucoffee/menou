@@ -1,5 +1,5 @@
 ---
-name: todo apps
+name: todo app
 models: /models/count.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
