@@ -69,7 +69,8 @@ class Menou
     main_test
     # screenshot
     kill
-
+    
+    ActiveRecord::Base.remove_connection
     @driver.quit
   end
 
@@ -77,8 +78,8 @@ class Menou
     Bundler.with_original_env do
       prepare_tb = MenouTaskBlock.new "環境準備", @callback
       FileUtils.rm_f("#{@path}/Gemfile.lock")
+      
       prepare_tb.task('$ bundle install') { Open3.capture2e('bundle install', :chdir => @path) }
-      prepare_tb.task('$ rake db:drop') { Open3.capture2e('rake db:drop', :chdir => @path) }
       prepare_tb.task('$ rake db:create') { Open3.capture2e('rake db:create', :chdir => @path) }
       prepare_tb.task('$ rake db:migrate:reset') { Open3.capture2e('rake db:migrate:reset', :chdir => @path) }
       prepare_tb.task('$ rake db:seed') { Open3.capture2e('rake db:seed', :chdir => @path) }

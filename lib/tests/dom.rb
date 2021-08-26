@@ -1,6 +1,7 @@
 register_test('dom') do |option, test_tb, path, driver, screenshot|
   query = (option['query'].nil?) ? "" : URI.encode_www_form(option['query'])
   driver.get "http://localhost:4567" + option['path'] + "?" + query
+  sleep 0.5
 
   option['expect'].each do |expect|
     case expect['target']
@@ -51,6 +52,7 @@ register_test('dom') do |option, test_tb, path, driver, screenshot|
       test_tb.task("要素'#{expect['selector']}'に'#{expect['text']}'と入力") do |error|
         elements = driver.find_elements(:css, expect['selector'])
         next error.call "要素'#{expect['selector']}'が存在しません" if elements.empty?
+        elements[0].clear
         elements[0].send_keys(expect['text'])
       end
     when 'click'
