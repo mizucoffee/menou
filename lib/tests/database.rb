@@ -1,4 +1,4 @@
-register_test('db_schema') do |option, test_tb, path|
+register_test('db_schema') do |option, test_tb, path, driver|
   table_name = option['table'].classify
 
   is_not_found = false
@@ -26,7 +26,7 @@ register_test('db_schema') do |option, test_tb, path|
   end
 end
 
-register_test('db_where') do |option, test_tb, path|
+register_test('db_where') do |option, test_tb, path, driver|
   test_tb.task("SELECT * FROM #{option['table'].classify} WHERE #{option['where'].map {|k, v| "#{k}=\"#{v}\""}.join ' AND '};") do |error|
     table_class = option['table'].classify.constantize rescue nil
     next error.call "テーブルが存在しません" if table_class.nil?

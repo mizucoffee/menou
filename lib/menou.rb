@@ -60,10 +60,17 @@ class Menou
   end
 
   def start
+    options = Selenium::WebDriver::Chrome::Options.new
+    options.add_argument('--headless')
+    options.add_argument('--window-size=1920,1080')
+    @driver = Selenium::WebDriver.for :chrome, options: options
+
     prepare_env
     main_test
     screenshot
     kill
+
+    @driver.quit
   end
 
   def prepare_env
@@ -99,7 +106,7 @@ class Menou
       test['tasks'].each do |task|
         script = @@test_scripts[task['type']]
         next if script.nil?
-        script.call task, test_tb, @path
+        script.call task, test_tb, @path, @driver
       end
 
       @results.push test_tb.results
@@ -110,14 +117,11 @@ class Menou
     return if @test['screenshots'].nil?
     @test['screenshots'].each do |sc|
       query = (sc['query'].nil?) ? "" : "?" + URI.encode_www_form(sc['query'])
-      options = Selenium::WebDriver::Chrome::Options.new
-      options.add_argument('--headless')
-      options.add_argument('--window-size=1920,1080')
-      driver = Selenium::WebDriver.for :chrome, options: options
-      driver.get "http://localhost:4567" + sc['path'] + query
+      
+      @driver.get "http://localhost:4567" + sc['path'] + query
 
       unless sc['click'].nil?
-        elements = driver.find_elements(:css, sc['click'])
+        elements = @driver.find_elements(:css, sc['click'])
         unless elements.empty?
           elements[0].click
           sleep 1
@@ -126,10 +130,9 @@ class Menou
 
       res = {
         path: sc['path'] + query,
-        image: driver.screenshot_as(:base64)
+        image: @driver.screenshot_as(:base64)
       }
       @screenshots.push res
-      driver.quit
     end
   end
 

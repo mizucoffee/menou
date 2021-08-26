@@ -1,8 +1,5 @@
-register_test('dom') do |option, test_tb, path|
+register_test('dom') do |option, test_tb, path, driver|
   query = (option['query'].nil?) ? "" : URI.encode_www_form(option['query'])
-  options = Selenium::WebDriver::Chrome::Options.new
-  options.add_argument('--headless')
-  driver = Selenium::WebDriver.for :chrome, options: options
   driver.get "http://localhost:4567" + option['path'] + "?" + query
 
   option['expect'].each do |expect|
@@ -83,6 +80,4 @@ register_test('dom') do |option, test_tb, path|
       end
     end
   end
-
-  driver.quit
 end

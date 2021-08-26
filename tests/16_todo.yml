@@ -1,6 +1,6 @@
 ---
 name: todo app
-models: /models/count.rb
+models: /models.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
@@ -138,7 +138,7 @@ tests:
       - type: http_post_status
         path: /tasks
         body:
-          due_date: "2030-01-01"
+          due_date: "2999-01-01"
           list: 1
           title: タスク1
         expect: 303
@@ -147,7 +147,7 @@ tests:
         where:
           id: 1
         expect:
-          due_date: "2030-01-01"
+          due_date: "2999-01-01"
           list_id: 1
           title: タスク1
 screenshots:
