@@ -28,6 +28,12 @@ register_test('dom') do |option, test_tb, path|
           error.call "要素'#{expect['selector']}'の表示状態が正しくありません", e.displayed?, expect['expect'] unless e.displayed? == expect['expect']
         end
       end
+    when 'exists'
+      test_tb.task("要素'#{expect['selector']}'の存在状態") do |error|
+        elements = driver.find_elements(:css, expect['selector'])
+        state = !elements.empty?
+        error.call "要素'#{expect['selector']}'の存在状態が正しくありません", state, expect['expect'] unless state == expect['expect']
+      end
     when 'path'
       test_tb.task("URLの検証") do |error|
         uri = URI.parse(driver.current_url)

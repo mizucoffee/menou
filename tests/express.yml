@@ -135,6 +135,94 @@ tests:
           name: 東京
         expect:
           error: "No Station."
+  - name: "[UI] お気に入り"
+    tasks:
+      - type: http_get_status
+        path: /list
+        query:
+          x: 135
+          y: 35
+        expect: 200
+      - type: dom
+        path: /
+        expect:
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .far.fa-heart.text-muted
+            expect: true
+          - target: click
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .fas.fa-heart.heart
+            expect: true
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)
+            expect: true
+          - target: content
+            selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)>div.card-body
+            expect:
+              - 135.0, 35.0
+          - target: click
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="解除"]
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .far.fa-heart.text-muted
+            expect: true
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)
+            expect: false
+          - target: click
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+  - name: "[UI] 削除"
+    tasks:
+      - type: http_get_status
+        path: /list
+        query:
+          x: 135.5
+          y: 35.5
+        expect: 200
+      - type: dom
+        path: /
+        expect:
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(4)
+            expect: true
+          - target: click
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) form[action="4/delete"][method="post"] button[type="submit"]
+          - target: exists
+            selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(4)
+            expect: false
+  - name: "[UI] モーダル"
+    tasks:
+      - type: dom
+        path: /list
+        query:
+          x: 139.73426180982665
+          y: 35.643120277039536
+        expect:
+          - target: displayed
+            selector: div#modal
+            expect: false
+          - target: content
+            selector: div#modal .modal-body.text-center.next
+            expect:
+              - ""
+          - target: click
+            selector: .card
+          - target: wait
+            second: 1
+          - target: displayed
+            selector: div#modal
+            expect: true
+          - target: content
+            selector: div#modal .modal-body.text-center.next
+            expect:
+              - 三田
+          - target: click
+            selector: button.close[type="button"][data-dismiss="modal"][aria-label="Close"]
+          - target: wait
+            second: 1
+          - target: displayed
+            selector: div#modal
+            expect: false
 screenshots:
   - path: /
   - path: /list
