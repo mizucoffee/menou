@@ -1,4 +1,4 @@
-register_test('dom') do |option, test_tb, path, driver|
+register_test('dom') do |option, test_tb, path, driver, screenshot|
   query = (option['query'].nil?) ? "" : URI.encode_www_form(option['query'])
   driver.get "http://localhost:4567" + option['path'] + "?" + query
 
@@ -78,6 +78,15 @@ register_test('dom') do |option, test_tb, path, driver|
           end
         end
       end
+    when 'screenshot'
+      uri = URI.parse(driver.current_url)
+      path = uri.path
+      path += "?#{uri.query}" unless uri.query.nil?
+      sc = {
+        path: expect['name'].nil? ? path : expect['name'],
+        image: driver.screenshot_as(:base64)
+      }
+      screenshot.call sc
     end
   end
 end

@@ -1,6 +1,6 @@
 require 'digest'
 
-register_test('file_exists') do |option, test_tb, path, driver|
+register_test('file_exists') do |option, test_tb, path, driver, screenshot|
   option['files'].each do |file|
     test_tb.task(file) do |error|
       error.call "'#{file}'が見つかりません" unless Dir[File.expand_path(file, path)].any?
@@ -8,7 +8,7 @@ register_test('file_exists') do |option, test_tb, path, driver|
   end
 end
 
-register_test('file_hash') do |option, test_tb, path, driver|
+register_test('file_hash') do |option, test_tb, path, driver, screenshot|
   option['files'].each_with_index do |file, idx|
     test_tb.task(file) do |error|
       next error.call "'#{file}'が見つかりません" unless File.exist?(File.expand_path(file, path))

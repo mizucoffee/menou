@@ -5,9 +5,9 @@ require 'sinatra/reloader' if development?
 
 set :port, 8080
 
-pastel = Pastel.new
-spinners = {}
-spins = {}
+# pastel = Pastel.new
+# spinners = {}
+# spins = {}
 
 # menou = Menou.new 'express'
 # # menou.path File.expand_path('./repob', File.dirname(__FILE__))

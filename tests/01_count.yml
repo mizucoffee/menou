@@ -71,6 +71,8 @@ tests:
             selector: h1
             expect:
               - 0
+          - target: screenshot
+            name: トップページ
       - type: http_post_status
         path: /plus
         expect: 303
@@ -106,11 +108,11 @@ tests:
             selector: h1
             expect:
               - 1
+          - target: screenshot
+            name: トップページ（+1カウントした状態）
           - target: click
             selector: form>input[type="submit"][value="-"]
           - target: content
             selector: h1
             expect:
               - 0
-screenshots:
-  - path: /

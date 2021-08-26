@@ -52,6 +52,8 @@ tests:
             selector: a[href="/signup"]
             expect:
               - 新規登録
+          - target: screenshot
+            name: トップページ
   - name: "[UI] ログインページ"
     tasks:
       - type: dom
@@ -71,6 +73,8 @@ tests:
           - target: exists
             selector: form input[type="submit"][value="ログイン"]
             expect: true
+          - target: screenshot
+            name: ログインページ
   - name: "[UI] 新規登録ページ"
     tasks:
       - type: dom
@@ -93,6 +97,8 @@ tests:
           - target: exists
             selector: form input[type="submit"][value="新規登録"]
             expect: true
+          - target: screenshot
+            name: 新規登録ページ
   - name: "[TRANSITION] 新規登録"
     tasks:
       - type: dom
@@ -122,6 +128,8 @@ tests:
             selector: a[href="/signout"]
             expect:
               - ログアウト
+          - target: screenshot
+            name: トップページ（ログイン後）
           - target: click
             selector: a[href="/signout"]
           - target: wait
@@ -234,7 +242,3 @@ tests:
             timeout: 10
             selector: h2
             expect: 未ログイン
-screenshots:
-  - path: /
-  - path: /signin
-  - path: /signup

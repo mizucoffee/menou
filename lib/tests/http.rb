@@ -7,7 +7,7 @@ def full_url(path, query)
   "#{path}?#{(query.nil?) ? "" : URI.encode_www_form(query)}"
 end
 
-register_test('http_get_status') do |option, test_tb, path, driver|
+register_test('http_get_status') do |option, test_tb, path, driver, screenshot|
   url = full_url(option['path'], option['query'])
 
   test_tb.task("GET #{option['path']}") do |error|
@@ -16,7 +16,7 @@ register_test('http_get_status') do |option, test_tb, path, driver|
   end
 end
 
-register_test('http_get_json') do |option, test_tb, path, driver|
+register_test('http_get_json') do |option, test_tb, path, driver, screenshot|
   url = full_url(option['path'], option['query'])
 
   test_tb.task("GET #{option['path']} as JSON API") do |error|
@@ -30,7 +30,7 @@ register_test('http_get_json') do |option, test_tb, path, driver|
   end
 end
 
-register_test('http_post_status') do |option, test_tb, path, driver|
+register_test('http_post_status') do |option, test_tb, path, driver, screenshot|
   url = full_url(option['path'], option['query'])
 
   test_tb.task("POST #{option['path']}") do |error|
@@ -42,7 +42,7 @@ register_test('http_post_status') do |option, test_tb, path, driver|
   end
 end
 
-register_test('http_post_json') do |option, test_tb, path, driver|
+register_test('http_post_json') do |option, test_tb, path, driver, screenshot|
   url = full_url(option['path'], option['query'])
 
   test_tb.task("POST #{option['path']} as JSON API") do |error|

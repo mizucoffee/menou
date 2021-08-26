@@ -52,7 +52,9 @@ tests:
           - target: displayed
             selector: button[type="submit"]
             expect: true
-  - name: "[UI] 次の駅を取得するページ"
+          - target: screenshot
+            name: トップページ
+  - name: "[UI] 最寄り駅ページ"
     tasks:
       - type: dom
         path: /list
@@ -82,10 +84,8 @@ tests:
             selector: .container-fluid>h2
             expect:
               - 135.51077935867468, 34.71098733537241の最寄駅
-          - target: click
-            selector: .card
-          - target: wait
-            second: 1
+          - target: screenshot
+            name: 最寄り駅一覧ページ
   - name: "[TRANSITION] 検索"
     tasks:
       - type: dom
@@ -171,6 +171,8 @@ tests:
             expect: false
           - target: click
             selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+          - target: screenshot
+            name: トップページ（お気に入り）
   - name: "[UI] 削除"
     tasks:
       - type: http_get_status
@@ -212,6 +214,8 @@ tests:
           - target: displayed
             selector: div#modal
             expect: true
+          - target: screenshot
+            name: 最寄り駅一覧ページ（モーダル）
           - target: content
             selector: div#modal .modal-body.text-center.next
             expect:

@@ -30,6 +30,8 @@ tests:
             expect:
               - property: font-family
                 value: 游ゴシック, "Yu Gothic", YuGothic, sans-serif
+          - target: screenshot
+            name: トップページ
   - name: "[UI] 検索結果表示"
     tasks:
       - type: dom
@@ -69,8 +71,5 @@ tests:
             expect: Ruby
           - target: path
             expect: /?keyword=Ruby
-screenshots:
-  - path: /
-  - path: /
-    query:
-      keyword: Ruby
+          - target: screenshot
+            name: 検索結果ページ
