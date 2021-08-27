@@ -40,7 +40,7 @@ post '/analyze' do
         result = group.results.create(title: r[:task], success: r[:success])
         next if r[:messages].nil?
         r[:messages].each do |m|
-          result.messages.create(message: m[:message], expect: m[:expect], result: m[:result])
+          result.messages.create(message: "#{m[:message]}", expect: "#{m[:expect]}", output: "#{m[:result]}")
         end
       end
     end

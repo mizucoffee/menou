@@ -101,7 +101,7 @@
         <% group.results.each do |result| %>
           <h5 class="<%= result.success ? "green" : "red" %>"><%= result.success ? "✓" : "&nbsp;✘&nbsp;" %><%= result.title %></h5>
           <% unless result.messages.nil? %>
-            <p><%= result.messages.map{ |mes| "内容: #{mes.message}" + (mes[:expect].nil? ? "" : "<br>結果: #{mes[:result]}<br>期待する値: #{mes[:expect]}") }.join '<br>' %></p>
+            <p><%= result.messages.map{ |mes| "内容: #{mes.message}" + (mes[:expect].nil? ? "" : "<br>結果: #{mes[:output]}<br>期待する値: #{mes[:expect]}") }.join '<br>' %></p>
           <% end%>
         <% end %>
       </details>
