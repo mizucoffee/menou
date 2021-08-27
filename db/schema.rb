@@ -18,7 +18,7 @@ ActiveRecord::Schema.define(version: 2021_08_27_154559) do
   create_table "messages", force: :cascade do |t|
     t.string "message"
     t.string "expect"
-    t.string "result"
+    t.string "output"
     t.integer "result_id"
   end
 

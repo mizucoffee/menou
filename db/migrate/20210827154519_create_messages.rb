@@ -3,7 +3,7 @@ class CreateMessages < ActiveRecord::Migration[6.1]
     create_table :messages do |t|
       t.string :message
       t.string :expect
-      t.string :result
+      t.string :output
       t.integer :result_id
     end
   end
