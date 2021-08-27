@@ -85,8 +85,8 @@ register_test('dom') do |option, test_tb, path, driver, screenshot|
       path = uri.path
       path += "?#{uri.query}" unless uri.query.nil?
       sc = {
-        path: expect['name'].nil? ? path : expect['name'],
-        image: driver.screenshot_as(:base64)
+        title: expect['name'].nil? ? path : expect['name'],
+        image: driver.screenshot_as(:png)
       }
       screenshot.call sc
     end

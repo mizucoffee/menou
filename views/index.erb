@@ -21,19 +21,11 @@
     color: red;
   }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/faye@1.4.0/client/faye-browser-min.js"></script>
-  <script>
-    // var client = new Faye.Client('http://localhost:8080/status');
-
-    // client.subscribe('/messages', function(message) {
-    //   alert('Got a message: ' + message.text);
-    // });
-  </script>
 </head>
 <body>
   <img src="menou_logo.png" class="logo" alt="Menou">
   <section class="container">
-    <form method="post" action="/test">
+    <form method="post" action="/analyze">
       <fieldset>
         <label for="repo">GitHub Repository<span class="red">*</span></label>
         <input type="text" placeholder="https://github.com/mizucoffee/todo_app" id="repo" name="repo">

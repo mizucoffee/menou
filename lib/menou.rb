@@ -62,15 +62,16 @@ class Menou
   def start
     options = Selenium::WebDriver::Chrome::Options.new
     options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
     options.add_argument('--window-size=1920,1080')
     @driver = Selenium::WebDriver.for :chrome, options: options
 
     prepare_env
     main_test
-    # screenshot
     kill
     
-    ActiveRecord::Base.remove_connection
+    ActiveRecord::Base.configurations = YAML.load_file("./config/database.yml")
+    ActiveRecord::Base.establish_connection
     @driver.quit
   end
 
@@ -115,29 +116,6 @@ class Menou
       end
 
       @results.push test_tb.results
-    end
-  end
-
-  def screenshot
-    return if @test['screenshots'].nil?
-    @test['screenshots'].each do |sc|
-      query = (sc['query'].nil?) ? "" : "?" + URI.encode_www_form(sc['query'])
-      
-      @driver.get "http://localhost:4567" + sc['path'] + query
-
-      unless sc['click'].nil?
-        elements = @driver.find_elements(:css, sc['click'])
-        unless elements.empty?
-          elements[0].click
-          sleep 1
-        end
-      end
-
-      res = {
-        path: sc['path'] + query,
-        image: @driver.screenshot_as(:base64)
-      }
-      @screenshots.push res
     end
   end
 
