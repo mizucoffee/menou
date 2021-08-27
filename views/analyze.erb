@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.css">
+  <title>Menou</title>
+  <style>
+  .logo {
+    width: 300px;
+    margin: 64px auto;
+    display: block;
+  }
+  h2, h3 {
+    text-align: center;
+    margin: auto;
+  }
+  h3 {
+    margin-top: 16px;
+  }
+  .loader {
+    margin-top: 32px;
+  }
+  </style>
+  <script>
+    let ws = new WebSocket('ws://' + window.location.host + '/ws/<%= @id %>');
+
+    ws.onopen = () => console.log('connection opened');
+    ws.onclose = () => console.log('connection closed');
+    ws.onmessage = m => {
+      if(m.data == 'Complated') window.location.href = "/report/<%= @id %>"
+      document.getElementById('status').innerText = m.data
+    }
+  </script>
+</head>
+<body>
+  <img src="/menou_logo.png" class="logo" alt="Menou">
+  <h2>解析中</h2>
+  <h3 id="status">読み込み中...</h3>
+</body>
+</html>

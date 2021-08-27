@@ -17,17 +17,12 @@ GEM
     bcrypt (3.1.16)
     childprocess (3.0.0)
     concurrent-ruby (1.1.9)
-    cookiejar (0.3.3)
+    daemons (1.4.1)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
-    em-http-request (1.1.7)
-      addressable (>= 2.3.4)
-      cookiejar (!= 0.3.1)
-      em-socksify (>= 0.3)
-      eventmachine (>= 1.0.3)
-      http_parser.rb (>= 0.6.0)
-    em-socksify (0.3.2)
-      eventmachine (>= 1.0.0.beta.4)
+    em-websocket (0.3.8)
+      addressable (>= 2.1.1)
+      eventmachine (>= 0.12.9)
     eventmachine (1.2.7)
     faraday (1.7.0)
       faraday-em_http (~> 1.0)
@@ -51,23 +46,11 @@ GEM
     faraday-net_http_persistent (1.2.0)
     faraday-patron (1.0.0)
     faraday-rack (1.0.0)
-    faye (1.4.0)
-      cookiejar (>= 0.3.0)
-      em-http-request (>= 1.1.6)
-      eventmachine (>= 0.12.0)
-      faye-websocket (>= 0.11.0)
-      multi_json (>= 1.0.0)
-      rack (>= 1.0.0)
-      websocket-driver (>= 0.5.1)
-    faye-websocket (0.11.1)
-      eventmachine (>= 0.12.0)
-      websocket-driver (>= 0.5.1)
     fileutils (1.5.0)
     git (1.9.1)
       rchardet (~> 1.8)
     http-cookie (1.0.4)
       domain_name (~> 0.5)
-    http_parser.rb (0.7.0)
     i18n (1.8.10)
       concurrent-ruby (~> 1.0)
     minitest (5.14.4)
@@ -75,14 +58,18 @@ GEM
     multipart-post (2.1.1)
     mustermann (1.1.1)
       ruby2_keywords (~> 0.0.1)
+    nio4r (2.5.8)
     pastel (0.8.0)
       tty-color (~> 0.5)
     permessage_deflate (0.1.4)
     pg (1.2.3)
     public_suffix (4.0.6)
+    puma (5.4.0)
+      nio4r (~> 2.0)
     rack (2.2.3)
     rack-protection (2.1.0)
       rack
+    rake (13.0.6)
     rchardet (1.8.0)
     rexml (3.2.5)
     ruby2_keywords (0.0.5)
@@ -95,12 +82,23 @@ GEM
       rack (~> 2.2)
       rack-protection (= 2.1.0)
       tilt (~> 2.0)
+    sinatra-activerecord (2.0.23)
+      activerecord (>= 4.1)
+      sinatra (>= 1.0)
     sinatra-contrib (2.1.0)
       multi_json
       mustermann (~> 1.0)
       rack-protection (= 2.1.0)
       sinatra (= 2.1.0)
       tilt (~> 2.0)
+    sinatra-websocket (0.3.1)
+      em-websocket (~> 0.3.6)
+      eventmachine
+      thin (>= 1.3.1, < 2.0.0)
+    thin (1.8.1)
+      daemons (~> 1.0, >= 1.0.9)
+      eventmachine (~> 1.0, >= 1.0.4)
+      rack (>= 1, < 3)
     tilt (2.0.10)
     tty-color (0.6.0)
     tty-cursor (0.7.1)
@@ -111,10 +109,6 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.7)
-    webrick (1.7.0)
-    websocket-driver (0.7.5)
-      websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.5)
     zeitwerk (2.4.2)
 
 PLATFORMS
@@ -126,18 +120,20 @@ DEPENDENCIES
   bcrypt
   faraday
   faraday-cookie_jar
-  faye
   fileutils
   git (~> 1.5)
   pastel
   permessage_deflate
   pg
+  puma
+  rake
   rexml
   selenium-webdriver
   sinatra
+  sinatra-activerecord
   sinatra-contrib
+  sinatra-websocket
   tty-spinner
-  webrick
 
 BUNDLED WITH
    2.2.24
