@@ -93,7 +93,7 @@ tests:
             selector: h1
             expect:
               - 0
-  - name: "[TRANSITION] 検索"
+  - name: "[TRANSITION] プラス/マイナスボタン"
     tasks:
       - type: dom
         path: /
