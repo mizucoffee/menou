@@ -1,0 +1,13 @@
+.logo {
+  width: 300px;
+  margin: 64px auto;
+  display: block;
+}
+
+.container {
+  max-width: 80rem;
+}
+
+.red {
+  color: red;
+}
