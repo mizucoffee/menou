@@ -1,0 +1,497 @@
+---
+name: todo app
+models: /models.rb
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        files:
+          - app.rb
+          - models.rb
+          - db/migrate/*_create_users.rb
+          - db/migrate/*_create_tasks.rb
+          - db/migrate/*_add_completed_and_so_on_to_tasks.rb
+          - db/migrate/*_create_lists.rb
+          - db/migrate/*_add_list_id_to_tasks.rb
+          - views/_count_due.erb
+          - views/edit.erb
+          - views/index.erb
+          - views/layout.erb
+          - views/new.erb
+          - views/sign_in.erb
+          - views/sign_up.erb
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: lists
+        expects:
+          - name: names
+            type: string
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+      - type: db_schema
+        table: tasks
+        expects:
+          - name: user_id
+            type: integer
+          - name: title
+            type: string
+            options:
+              "null": false
+          - name: completed
+            type: boolean
+          - name: due_date
+            type: date
+          - name: star
+            type: boolean
+          - name: list_id
+            type: integer
+            options:
+              default: 1
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+      - type: db_schema
+        table: users
+        expects:
+          - name: name
+            type: string
+          - name: password_digest
+            type: string
+          - name: created_at
+            type: datetime
+            options:
+              "null": false
+          - name: updated_at
+            type: datetime
+            options:
+              "null": false
+  - name: "[HTTP] ルーティング検証"
+    tasks:
+      - type: http_get_status
+        path: /
+        expect: 200
+      - type: http_get_status
+        path: /signup
+        expect: 200
+      - type: http_get_status
+        path: /signin
+        expect: 200
+      - type: http_get_status
+        path: /signout
+        expect: 302
+      - type: http_get_status
+        path: /tasks/new
+        expect: 200
+      - type: http_get_status
+        path: /tasks/0/star
+        expect: 500
+      - type: http_get_status
+        path: /tasks/0/edit
+        expect: 500
+      - type: http_get_status
+        path: /tasks/over
+        expect: 500
+      - type: http_get_status
+        path: /tasks/done
+        expect: 500
+  - name: "[HTTP] 未ログイン時はタスクが生成されない"
+    tasks:
+      - type: http_post_status
+        path: /tasks
+        body:
+          due_date: "2030-01-01"
+          list: プライベート
+          title: タスク1
+        expect: 303
+      - type: db_select
+        table: tasks
+        where:
+          title: タスク1
+        expect: null
+  - name: "[HTTP] アカウント生成"
+    tasks:
+      - type: http_post_status
+        path: /signup
+        expect: 303
+        body:
+          name: menou_user
+          password: password
+          password_confirm: password
+      - type: db_where
+        table: users
+        where:
+          id: 1
+        expect:
+          name: menou_user
+  - name: "[HTTP] タスク生成 & ログイン確認"
+    tasks:
+      - type: http_post_status
+        path: /tasks
+        body:
+          due_date: "2999-01-01"
+          list: 3
+          title: タスク1
+        expect: 303
+      - type: http_post_status
+        path: /tasks
+        body:
+          due_date: "2999-01-01"
+          list: 2
+          title: タスク2
+        expect: 303
+      - type: db_where
+        table: tasks
+        where:
+          id: 1
+        expect:
+          due_date: "2999-01-01"
+          list_id: 3
+          title: タスク1
+      - type: db_where
+        table: tasks
+        where:
+          id: 2
+        expect:
+          due_date: "2999-01-01"
+          list_id: 2
+          title: タスク2
+  - name: "[UI] トップページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: page_title
+            expect: todoアプリ
+          - target: content
+            selector: body>nav.navbar.navbar-default>div.container>div.navbar-header>a.navbar-brand
+            expect:
+              - todoアプリ
+          - target: content
+            selector: body>nav.navbar.navbar-default>div.container>ul.nav.navbar-nav.navbar-right>li>a
+            expect:
+              -
+              - 新規ユーザーですか?
+              - ログイン
+              - 新規登録
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-2>ul.list-group>li.list-group-item>a
+            expect:
+              - トップ
+              - done
+              - 締切過ぎた
+              - プライベート
+              - 仕事
+              - その他
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>thead>tr>th
+            expect:
+              - タイトル
+              - 締め切り
+              - Done
+              - 削除
+              - 編集
+              - 備考
+              - 重要?
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr>td>a
+            expect:
+              - 新しいtodo
+          - target: screenshot
+            name: トップページ
+  - name: "[UI] 新規登録ページ"
+    tasks:
+      - type: dom
+        path: /signup
+        expect:
+          - target: page_title
+            expect: todoアプリ
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="name"][placeholder="名前を入力"]
+            expect: true
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="password"][type="password"][placeholder="パスワードを入力"]
+            expect: true
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="password_confirmation"][type="password"][placeholder="パスワードをもう一度入力"]
+            expect: true
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group.col-lg-4>input.form-control.col-lg-4[type="submit"][value="登録"]
+            expect: true
+          - target: screenshot
+            name: 新規登録ページ
+  - name: "[UI] ログインページ"
+    tasks:
+      - type: dom
+        path: /signin
+        expect:
+          - target: page_title
+            expect: todoアプリ
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="name"][placeholder="名前を入力"]
+            expect: true
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="password"][type="password"][placeholder="パスワードを入力"]
+            expect: true
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group>input.form-control.input-lg[name="password_confirmation"][type="password"][placeholder="パスワードをもう一度入力"]
+            expect: false
+          - target: exists
+            selector: body>div.container>form.col-lg-5>div.controls>div.form-group.col-lg-4>input.form-control.col-lg-4[type="submit"][value="ログイン"]
+            expect: true
+          - target: screenshot
+            name: ログインページ
+  - name: "[TRANSITION] 新規登録"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/signup"]
+          - target: wait
+            timeout: 10
+            selector: form
+          - target: input
+            selector: input[name="name"]
+            text: menou_user2
+          - target: input
+            selector: input[name="password"]
+            text: password
+          - target: input
+            selector: input[name="password_confirmation"]
+            text: password
+          - target: click
+            selector: input[type="submit"]
+          - target: wait
+            timeout: 10
+            selector: .list-group-item>a
+          - target: content
+            selector: a[href="/signout"]
+            expect:
+              - ログアウト
+          - target: click
+            selector: a[href="/signout"]
+          - target: wait
+            timeout: 10
+            selector: .list-group-item>a
+  - name: "[TRANSITION] ログイン"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/signin"]
+          - target: wait
+            timeout: 10
+            selector: form
+          - target: input
+            selector: input[name="name"]
+            text: menou_user
+          - target: input
+            selector: input[name="password"]
+            text: password
+          - target: click
+            selector: input[type="submit"]
+          - target: wait
+            timeout: 10
+            selector: .list-group-item>a
+          - target: content
+            selector: a[href="/signout"]
+            expect:
+              - ログアウト
+  - name: "[UI] 新規Todoページ"
+    tasks:
+      - type: dom
+        path: /tasks/new
+        expect:
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>input.form-control.input-lg[type="text"][name="title"][placeholder="タイトル"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>input.form-control.input-lg[type="text"][name="due_date"][placeholder="締切"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>select.form-control[name="list"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group.col-lg-4>input.form-control.col-lg-4[type="submit"][value="登録"]
+            expect: true
+          - target: screenshot
+            name: 新規Todoページ
+  - name: "[UI] Todo編集ページ"
+    tasks:
+      - type: dom
+        path: /tasks/1/edit
+        expect:
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>input.form-control.input-lg[type="text"][name="title"][placeholder="タイトル"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>input.form-control.input-lg[type="text"][name="due_date"][placeholder="締切"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group>select.form-control[name="list"]
+            expect: true
+          - target: exists
+            selector: div.container>form>div.controls>div.form-group.col-lg-4>input.form-control.col-lg-4[type="submit"][value="登録"]
+            expect: true
+          - target: screenshot
+            name: Todo編集ページ
+  - name: "[TRANSITION] 新規Todo"
+    tasks:
+      - type: dom
+        path: /tasks/new
+        expect:
+          - target: input
+            selector: input[name="title"]
+            text: タスク3
+          - target: input
+            selector: input[name="due_date"]
+            text: 2000-01-01
+          - target: click
+            selector: input[type="submit"]
+          - target: wait
+            timeout: 10
+            selector: table
+  - name: "[TRANSITION] Todo編集"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/tasks/3/edit"]
+          - target: wait
+            timeout: 10
+            selector: form
+          - target: input
+            selector: input[name="due_date"]
+            text: 1999-01-01
+          - target: click
+            selector: input[type="submit"]
+          - target: wait
+            timeout: 10
+            selector: table
+  - name: "[UI] タスク操作"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: form[action="/tasks/2/done"]>input[type="submit"]
+          - target: click
+            selector: a[href="/tasks/3/star"]
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
+            expect:
+              - タスク1
+              - 2999-01-01
+              - 
+              - 
+              - 編集
+              - 
+              - 
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(2)>td
+            expect:
+              - タスク2
+              - 2999-01-01
+              - Done!
+              - 
+              - 編集
+              - 
+              - 
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(3)>td
+            expect:
+              - タスク3
+              - 1999-01-01
+              - 
+              - 
+              - 編集
+              - 締切過ぎた
+              - 
+          - target: screenshot
+            name: トップページ（ログイン後）
+  - name: "[UI] Doneページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/tasks/done"]
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
+            expect:
+              - タスク2
+              - 2999-01-01
+              - Done!
+              - 
+              - 編集
+              - 
+              - 
+          - target: screenshot
+            name: Doneページ
+  - name: "[UI] 締切過ぎたページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/tasks/over"]
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
+            expect:
+              - タスク3
+              - 1999-01-01
+              - 
+              - 
+              - 編集
+              - 締切過ぎた
+              - 
+          - target: screenshot
+            name: 締切過ぎたページ
+  - name: "[UI] その他ページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: click
+            selector: a[href="/?list=3"]
+          - target: content
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
+            expect:
+              - タスク1
+              - 2999-01-01
+              - 
+              - 
+              - 編集
+              - 
+              - 
+          - target: screenshot
+            name: プライベートページ
+  - name: "[TRANSITION] 削除"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          - target: exists
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(4)>td
+            expect: true
+          - target: click
+            selector: form[action="/tasks/3/delete"]>input[type="submit"]
+          - target: wait
+            second: 1
+          - target: exists
+            selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(4)>td
+            expect: false

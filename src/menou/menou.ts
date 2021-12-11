@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { Client as PgClient } from "pg";
+import { Test } from "../types/menou";
 
 const client = new PgClient({connectionString: process.env.DATABASE_URL})
 client.connect()
@@ -27,6 +28,8 @@ export abstract class Menou {
     return this.repoDir;
   }
 
+  abstract run_tests(tests: Test[]): Promise<any>;
+  abstract start(): void;
   abstract migrate(): void;
-  abstract check_schema(): void;
+  // abstract checkSchema(): void;
 }
