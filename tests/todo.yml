@@ -5,21 +5,21 @@ tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
       - type: file_exists
-        files:
-          - app.rb
-          - models.rb
-          - db/migrate/*_create_users.rb
-          - db/migrate/*_create_tasks.rb
-          - db/migrate/*_add_completed_and_so_on_to_tasks.rb
-          - db/migrate/*_create_lists.rb
-          - db/migrate/*_add_list_id_to_tasks.rb
-          - views/_count_due.erb
-          - views/edit.erb
-          - views/index.erb
-          - views/layout.erb
-          - views/new.erb
-          - views/sign_in.erb
-          - views/sign_up.erb
+        expects:
+          - name: app.rb
+          - name: models.rb
+          - name: db/migrate/*_create_users.rb
+          - name: db/migrate/*_create_tasks.rb
+          - name: db/migrate/*_add_completed_and_so_on_to_tasks.rb
+          - name: db/migrate/*_create_lists.rb
+          - name: db/migrate/*_add_list_id_to_tasks.rb
+          - name: views/_count_due.erb
+          - name: views/edit.erb
+          - name: views/index.erb
+          - name: views/layout.erb
+          - name: views/new.erb
+          - name: views/sign_in.erb
+          - name: views/sign_up.erb
   - name: "[DB] Schema検証"
     tasks:
       - type: db_schema

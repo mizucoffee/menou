@@ -4,6 +4,7 @@ import path from "path";
 import os from "os";
 import { Client as PgClient } from "pg";
 import { Test } from "../types/menou";
+import glob from "glob-promise";
 
 const client = new PgClient({connectionString: process.env.DATABASE_URL})
 client.connect()
@@ -32,4 +33,11 @@ export abstract class Menou {
   abstract start(): void;
   abstract migrate(): void;
   // abstract checkSchema(): void;
+
+  async checkFileExists(file_name: string) {
+    const files = await glob(path.join(this.repoDir, file_name))
+    if (files.length == 0)
+      return { ok: false, error: `${file_name} not found`, expect: file_name }
+    return { ok: true, expect: file_name }
+  }
 }

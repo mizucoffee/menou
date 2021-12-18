@@ -2,11 +2,9 @@ import path from "path";
 import { Menou } from "./menou";
 import { observableSpawn, spawn } from "../tools";
 import { SpawnOptionsWithoutStdio } from "child_process";
-
 import { Client } from 'pg';
 import format from 'pg-format';
 import { Expect, Test } from "../types/menou";
-import { isCleanOptionsArray } from "simple-git/src/lib/tasks/clean";
 
 export class MenouRuby extends Menou {
   opts: SpawnOptionsWithoutStdio = {};
@@ -16,10 +14,7 @@ export class MenouRuby extends Menou {
     super();
     this.opts = {
       cwd: this.repoDir,
-      env: {
-        ...process.env,
-        DATABASE_URL: this.DATABASE_URL,
-      }
+      env: { ...process.env, DATABASE_URL: this.DATABASE_URL }
     };
   }
 
@@ -31,6 +26,12 @@ export class MenouRuby extends Menou {
         switch (task.type) {
           case 'db_schema': {
             const res = await this.checkSchema(`${task.table}`, task.expects || [])
+            console.log(res)
+            break
+          }
+          case 'file_exists': {
+            if (!task.expects) break
+            const res = await Promise.all(task.expects.map(expect => this.checkFileExists(`${expect.name}`)))
             console.log(res)
             break
           }
@@ -61,13 +62,13 @@ export class MenouRuby extends Menou {
       if(!column) return { ok:false, error: 'not found' }
       if(expect.options?.null !== undefined) {
         if(expect.options.null) {
-          if (column.is_nullable != 'YES') return { ok:false, error: 'nullable' }
+          if (column.is_nullable != 'YES') return { ok: false, error: 'nullable' }
         } else {
-          if (column.is_nullable != 'NO') return { ok:false, error: 'nullable' }
+          if (column.is_nullable != 'NO') return { ok: false, error: 'nullable' }
         }
       } 
         
-      return { ok :true }
+      return { ok: true }
     })
 
     await client.end()
