@@ -5,78 +5,80 @@ tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
       - type: file_exists
-        expects:
-          - name: app.rb
-          - name: models.rb
-          - name: db/migrate/*_create_users.rb
-          - name: db/migrate/*_create_tasks.rb
-          - name: db/migrate/*_add_completed_and_so_on_to_tasks.rb
-          - name: db/migrate/*_create_lists.rb
-          - name: db/migrate/*_add_list_id_to_tasks.rb
-          - name: views/_count_due.erb
-          - name: views/edit.erb
-          - name: views/index.erb
-          - name: views/layout.erb
-          - name: views/new.erb
-          - name: views/sign_in.erb
-          - name: views/sign_up.erb
+        expect:
+          files:
+            - app.rb
+            - models.rb
+            - db/migrate/*_create_users.rb
+            - db/migrate/*_create_tasks.rb
+            - db/migrate/*_add_completed_and_so_on_to_tasks.rb
+            - db/migrate/*_create_lists.rb
+            - db/migrate/*_add_list_id_to_tasks.rb
+            - views/_count_due.erb
+            - views/edit.erb
+            - views/index.erb
+            - views/layout.erb
+            - views/new.erb
+            - views/sign_in.erb
+            - views/sign_up.erb
   - name: "[DB] Schema検証"
     tasks:
       - type: db_schema
         table: lists
-        expects:
-          - name: names
-            type: string
-          - name: created_at
-            type: datetime
-            options:
-              "null": false
-          - name: updated_at
-            type: datetime
-            options:
-              "null": false
+        expect:
+          schema:
+            - name: name
+              type: string
+            - name: created_at
+              type: datetime
+              options:
+                "null": false
+            - name: updated_at
+              type: datetime
+              options:
+                "null": false
       - type: db_schema
         table: tasks
-        expects:
-          - name: user_id
-            type: integer
-          - name: title
-            type: string
-            options:
-              "null": false
-          - name: completed
-            type: boolean
-          - name: due_date
-            type: date
-          - name: star
-            type: boolean
-          - name: list_id
-            type: integer
-            options:
-              default: 1
-          - name: created_at
-            type: datetime
-            options:
-              "null": false
-          - name: updated_at
-            type: datetime
-            options:
-              "null": false
+        expect:
+          schema:
+            - name: user_id
+              type: integer
+            - name: title
+              type: string
+            - name: completed
+              type: boolean
+            - name: due_date
+              type: date
+            - name: star
+              type: boolean
+            - name: list_id
+              type: integer
+              options:
+                default: 1
+            - name: created_at
+              type: datetime
+              options:
+                "null": false
+            - name: updated_at
+              type: datetime
+              options:
+                "null": false
       - type: db_schema
         table: users
-        expects:
-          - name: name
-            type: string
-          - name: password_digest
-            type: string
-          - name: created_at
-            type: datetime
-            options:
-              "null": false
-          - name: updated_at
-            type: datetime
-            options:
-              "null": false
+        expect:
+          schema:
+            - name: name
+              type: string
+            - name: password_digest
+              type: string
+            - name: created_at
+              type: datetime
+              options:
+                "null": false
+            - name: updated_at
+              type: datetime
+              options:
+                "null": false
   - name: "[HTTP] ルーティング検証"
     tasks:
       - type: http_get_status
@@ -125,11 +127,12 @@ tests:
           title: タスク1
         expect:
           value: 303
-      - type: db_select
+      - type: db_where
         table: tasks
         where:
           title: タスク1
-        expect: null
+        expect:
+          result: null
   - name: "[HTTP] アカウント生成"
     tasks:
       - type: http_post_status
@@ -145,7 +148,8 @@ tests:
         where:
           id: 1
         expect:
-          name: menou_user
+          result:
+            name: menou_user
   - name: "[HTTP] タスク生成 & ログイン確認"
     tasks:
       - type: http_post_status
@@ -169,17 +173,19 @@ tests:
         where:
           id: 1
         expect:
-          due_date: "2999-01-01"
-          list_id: 3
-          title: タスク1
+          result:
+            due_date: "2999-01-01"
+            list_id: 3
+            title: タスク1
       - type: db_where
         table: tasks
         where:
           id: 2
         expect:
-          due_date: "2999-01-01"
-          list_id: 2
-          title: タスク2
+          result:
+            due_date: "2999-01-01"
+            list_id: 2
+            title: タスク2
   - name: "[UI] トップページ"
     tasks:
       - type: dom

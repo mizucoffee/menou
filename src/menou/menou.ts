@@ -45,10 +45,12 @@ export abstract class Menou {
   // abstract checkSchema(): void;
   abstract clean(): Promise<any>;
 
-  async checkFileExists(file_name: string) {
-    const files = await glob(path.join(this.repoDir, file_name))
-    if (files.length == 0)
-      return { ok: false, error: `${file_name} not found`, expect: file_name }
-    return { ok: true, expect: file_name }
+  async checkFileExists(files: string[]) {
+    const exists = await Promise.all(files.map(async (file) => {
+      const files = await glob(path.join(this.repoDir, file))
+      if (files.length == 0)
+        return { ok: false, error: `${file} not found`, expect: file }
+      return { ok: true, expect: file }
+    }))
   }
 }
