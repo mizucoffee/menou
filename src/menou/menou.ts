@@ -5,6 +5,7 @@ import os from "os";
 import { Client as PgClient } from "pg";
 import { Test } from "../types/menou";
 import glob from "glob-promise";
+import { getPortPromise as getPort } from "portfinder";
 
 const client = new PgClient({connectionString: process.env.DATABASE_URL})
 client.connect()
@@ -12,10 +13,19 @@ client.connect()
 export abstract class Menou {
   protected repoDir = "";
   protected id = "";
+  private port = 0;
 
   constructor() {
     this.repoDir = fs.mkdtempSync(path.join(os.tmpdir(), "menou-"));
     this.id = this.repoDir.split("menou-")[1]
+    console.log(this.repoDir)
+  }
+
+  protected async getPort() {
+    if (this.port == 0) {
+      this.port = await getPort();
+    }
+    return this.port;
   }
 
   async git_clone(repoUrl: string, options?: { branch?: string; path?: string }) {
@@ -30,9 +40,10 @@ export abstract class Menou {
   }
 
   abstract run_tests(tests: Test[]): Promise<any>;
-  abstract start(): void;
+  abstract start(tests: Test[]): Promise<any>;
   abstract migrate(): void;
   // abstract checkSchema(): void;
+  abstract clean(): Promise<any>;
 
   async checkFileExists(file_name: string) {
     const files = await glob(path.join(this.repoDir, file_name))

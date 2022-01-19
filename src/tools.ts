@@ -30,15 +30,16 @@ export function spawn (cmd: string, args: string[], options: child_process.Spawn
 }
 
 export function observableSpawn(cmd: string, args: string[], options: child_process.SpawnOptionsWithoutStdio){
-  return new Observable((subscriber) => {
-    const process = child_process.spawn(cmd, args, options);
+  const process = child_process.spawn(cmd, args, options);
+  const observable = new Observable((subscriber) => {
     process.stdout.setEncoding('utf-8');
     process.stderr.setEncoding('utf-8');
     process.stdout.on('data', data => subscriber.next(data));
-    process.stderr.on('data', data => subscriber.error(data));
+    process.stderr.on('data', data => subscriber.next(data));
     process.on('exit', code => {
       if (code == 0) subscriber.complete();
       else subscriber.error(code);
     })
   });
+  return { observable, pid: process.pid }
 }

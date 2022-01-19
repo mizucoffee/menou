@@ -81,31 +81,40 @@ tests:
     tasks:
       - type: http_get_status
         path: /
-        expect: 200
+        expects:
+          - value: 200
       - type: http_get_status
         path: /signup
-        expect: 200
+        expect:
+          value: 200
       - type: http_get_status
         path: /signin
-        expect: 200
+        expect:
+          value: 200
       - type: http_get_status
         path: /signout
-        expect: 302
+        expect:
+          value: 302
       - type: http_get_status
         path: /tasks/new
-        expect: 200
+        expect:
+          value: 200
       - type: http_get_status
         path: /tasks/0/star
-        expect: 500
+        expect:
+          value: 500
       - type: http_get_status
         path: /tasks/0/edit
-        expect: 500
+        expect:
+          value: 500
       - type: http_get_status
         path: /tasks/over
-        expect: 500
+        expect:
+          value: 500
       - type: http_get_status
         path: /tasks/done
-        expect: 500
+        expect:
+          value: 500
   - name: "[HTTP] 未ログイン時はタスクが生成されない"
     tasks:
       - type: http_post_status

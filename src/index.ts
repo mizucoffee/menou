@@ -30,7 +30,7 @@ app.use(connectLogger(logger, { level: 'info' }))
 app.set('view engine', 'pug')
 
 // Router
-import root from './routes/root'
+import root from './routes/root.js'
 
 app.use('/', root)
 
