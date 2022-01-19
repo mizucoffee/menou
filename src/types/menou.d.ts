@@ -10,6 +10,7 @@ export class Task {
   table?: string;
   expect?: Expect;
   expects?: Expect[];
+  body?: any;
 }
 
 export class Expect {

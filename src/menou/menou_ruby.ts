@@ -1,4 +1,3 @@
-import path from "path";
 import { Menou } from "./menou";
 import { observableSpawn, spawn } from "../tools";
 import { SpawnOptionsWithoutStdio } from "child_process";
@@ -6,8 +5,9 @@ import { Client } from 'pg';
 import format from 'pg-format';
 import { Expect, Test } from "../types/menou";
 import axios from "axios";
-import { Observable, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import fs from "fs";
+import { URLSearchParams } from "url";
 
 export class MenouRuby extends Menou {
   opts: SpawnOptionsWithoutStdio = {};
@@ -21,7 +21,6 @@ export class MenouRuby extends Menou {
     maxRedirects: 0
   });
   pid = 0;
-  // observable?: Observable<any>;
 
   constructor() {
     super();
@@ -53,7 +52,15 @@ export class MenouRuby extends Menou {
               if (!task.expect || !task.path) break
               const value = parseInt(`${task.expect.value}`)
               if (isNaN(value)) break
-              const res = await this.checkHttpStatus(`${task.path}`, value)
+              const res = await this.checkHttpGetStatus(`${task.path}`, value)
+              console.log(res)
+              break
+            }
+            case 'http_post_status': {
+              if (!task.expect || !task.path) break
+              const value = parseInt(`${task.expect.value}`)
+              if (isNaN(value)) break
+              const res = await this.checkHttpPostStatus(`${task.path}`, task.body, value)
               console.log(res)
               break
             }
@@ -77,8 +84,7 @@ export class MenouRuby extends Menou {
       this.client.defaults.baseURL = `http://localhost:${port}/`
       const { observable, pid } = observableSpawn('ruby', ["app.rb", '-o', '0.0.0.0', '-p', `${port}`], this.opts)
       if(pid) this.pid = pid
-      // this.observable = observable
-  
+
       await Promise.race([
         new Promise(res => {
           const sub: Subscription = observable.subscribe({
@@ -121,8 +127,18 @@ export class MenouRuby extends Menou {
     return result
   }
 
-  async checkHttpStatus(path: string, value: number) {
+  async checkHttpGetStatus(path: string, value: number) {
     const res = await this.client.get(path)
+    if (res.status !== value) return { ok: false, error: `expected: ${value}, result: ${res.status}` }
+    return { ok: true, expect: value }
+  }
+
+  async checkHttpPostStatus(path: string, body: any, value: number) {
+    const params = new URLSearchParams();
+    for (const key in body) {
+      params.append(key, body[key]);
+    }
+    const res = await this.client.post(path, params)
     if (res.status !== value) return { ok: false, error: `expected: ${value}, result: ${res.status}` }
     return { ok: true, expect: value }
   }

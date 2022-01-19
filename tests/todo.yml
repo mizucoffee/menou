@@ -81,8 +81,8 @@ tests:
     tasks:
       - type: http_get_status
         path: /
-        expects:
-          - value: 200
+        expect:
+          value: 200
       - type: http_get_status
         path: /signup
         expect:
@@ -123,7 +123,8 @@ tests:
           due_date: "2030-01-01"
           list: プライベート
           title: タスク1
-        expect: 303
+        expect:
+          value: 303
       - type: db_select
         table: tasks
         where:
@@ -133,7 +134,8 @@ tests:
     tasks:
       - type: http_post_status
         path: /signup
-        expect: 303
+        expect:
+          value: 303
         body:
           name: menou_user
           password: password
@@ -152,14 +154,16 @@ tests:
           due_date: "2999-01-01"
           list: 3
           title: タスク1
-        expect: 303
+        expect:
+          value: 303
       - type: http_post_status
         path: /tasks
         body:
           due_date: "2999-01-01"
           list: 2
           title: タスク2
-        expect: 303
+        expect:
+          value: 303
       - type: db_where
         table: tasks
         where:
