@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "lib": ["esnext"],
+    "lib": ["esnext", "dom"],
     "skipLibCheck": true,
     "typeRoots": ["src/types", "node_modules/@types"]
   },

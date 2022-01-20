@@ -19,12 +19,23 @@ export class Expect {
   result?: any;
   schema?: Schema[];
   files?: string[];
+  dom?: DomExpect[];
 }
 
 export class Schema {
   name: string;
   type: string;
   options?: any;
+}
+
+export class DomExpect {
+  target: string;
+  expect: any;
+  selector?: string;
+  second?: number;
+  name?: string;
+  timeout?: number;
+  text?: string;
 }
 
 export class Result {

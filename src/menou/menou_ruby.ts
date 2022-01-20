@@ -3,13 +3,16 @@ import { observableSpawn, spawn } from "../tools";
 import { SpawnOptionsWithoutStdio } from "child_process";
 import { Client } from 'pg';
 import format from 'pg-format';
-import { Result, Test, Schema } from "../types/menou";
+import { Result, Test, Schema, DomExpect } from "../types/menou";
 import axios from "axios";
 import { Subscription } from "rxjs";
 import fs from "fs";
 import { URLSearchParams } from "url";
 import { wrapper } from 'axios-cookiejar-support';
 import { CookieJar } from 'tough-cookie';
+import puppeteer, { Browser } from "puppeteer";
+import urlJoin from "url-join";
+import uniqid from "uniqid";
 
 export class MenouRuby extends Menou {
   opts: SpawnOptionsWithoutStdio = {};
@@ -17,12 +20,13 @@ export class MenouRuby extends Menou {
   client = wrapper(axios.create({
     baseURL: `http://localhost/`,
     timeout: 5000,
-    validateStatus: s => true,
+    validateStatus: () => true,
     maxRedirects: 0,
     jar: new CookieJar(),
     withCredentials: true
   }));
   pid = 0;
+  browser?: Browser;
 
   constructor() {
     super();
@@ -69,17 +73,20 @@ export class MenouRuby extends Menou {
               res = await this.dbSelect(`${task.table}`, task.where, task.expect.result)
               break
             }
+            case 'dom': {
+              if (!task.expect || !task.expect.dom || !task.path) break
+              res = await this.checkDom(task.path, task.expect.dom)
+              break
+            }
           }
           if(Array.isArray(res)) {
             for (const r of res) {
-              if (!r.ok) {
-                console.log(`[ERROR]: ${r.error}`)
-                return
-              }
+              // if (!r.ok)
+                console.log(r)
             }
           } else {
-            if(res && !res.ok) 
-              console.log(`[ERROR]: ${res.error}`)
+            // if(res && !res.ok) 
+              console.log(res)
           }
         } catch (e: any) {
           console.error({ ok: false, error: e.message })
@@ -97,6 +104,8 @@ export class MenouRuby extends Menou {
 
   async start(tests: Test[]) {
     try {
+      this.browser = await puppeteer.launch();
+
       const port = await this.getPort()
       this.client.defaults.baseURL = `http://localhost:${port}/`
       const { observable, pid } = observableSpawn('ruby', ["app.rb", '-o', '0.0.0.0', '-p', `${port}`], this.opts)
@@ -178,9 +187,60 @@ export class MenouRuby extends Menou {
     return { ok: true, expect: `${value}` }
   }
 
+  async checkDom(path: string, expects: DomExpect[]) {
+    if(!this.browser) return { ok: false, error: 'browser not found' }
+    const page = await this.browser?.newPage()
+
+    await page.goto(urlJoin(`${this.client.defaults.baseURL}`, path));
+    await page.setViewport({ width: 1920, height: 1080 })
+
+    const result = []
+
+    for(const expect of expects) {
+      console.log(expect.target)
+      switch(expect.target) {
+        case 'page_title': {
+          const title = await page.title()
+          if(title !== expect.expect) {
+            result.push({ ok: false, error: `expected: ${expect.expect}, result: ${title}` })
+            continue
+          }
+          result.push({ ok: true, expect: `${expect.expect}` })
+          continue
+        }
+        case 'content': {
+          if(!expect.selector || !Array.isArray(expect.expect)) {
+            result.push({ ok: false, error: 'invalid test' })
+            continue
+          }
+          const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
+          
+          const res = expect.expect.map((e, i) => {
+            if(e == null) e = '';
+            if(texts[i] != e) return { ok: false, error: `expected: ${e}, result: ${texts[i]}` }
+            return { ok: true, expect: `${e}` }
+          })
+          result.push({ok: res.every(r => r.ok), results: res})
+          continue
+        }
+        case 'screenshot': {
+          const path = `screenshots/${this.id}-${uniqid()}.png`
+          await page.screenshot({ path });
+          result.push({ ok: true, name: expect.name, path })
+          continue
+        }
+      }
+    }
+
+    await page.close();
+
+    return result
+  }
+
   async clean() {
     process.kill(this.pid)
     fs.rmSync(this.repoDir, { recursive: true })
     await spawn('bundle', ['exec', 'rake', 'db:drop'], this.opts)
+    await this.browser?.close()
   }
 }
