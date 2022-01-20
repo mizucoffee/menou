@@ -287,13 +287,13 @@ tests:
               selector: form
             - target: input
               selector: input[name="name"]
-              text: menou_user2
+              value: menou_user2
             - target: input
               selector: input[name="password"]
-              text: password
+              value: password
             - target: input
               selector: input[name="password_confirmation"]
-              text: password
+              value: password
             - target: click
               selector: input[type="submit"]
             - target: wait
@@ -321,10 +321,10 @@ tests:
               selector: form
             - target: input
               selector: input[name="name"]
-              text: menou_user
+              value: menou_user
             - target: input
               selector: input[name="password"]
-              text: password
+              value: password
             - target: click
               selector: input[type="submit"]
             - target: wait
@@ -382,10 +382,10 @@ tests:
           dom:
             - target: input
               selector: input[name="title"]
-              text: タスク3
+              value: タスク3
             - target: input
               selector: input[name="due_date"]
-              text: 2000-01-01
+              value: "2000-01-01"
             - target: click
               selector: input[type="submit"]
             - target: wait
@@ -404,7 +404,7 @@ tests:
               selector: form
             - target: input
               selector: input[name="due_date"]
-              text: 1999-01-01
+              value: "1999-01-01"
             - target: click
               selector: input[type="submit"]
             - target: wait
@@ -424,7 +424,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク1
-                - 2999-01-01
+                - "2999-01-01"
                 - ""
                 - ""
                 - 編集
@@ -434,7 +434,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(2)>td
               expect:
                 - タスク2
-                - 2999-01-01
+                - "2999-01-01"
                 - Done!
                 - ""
                 - 編集
@@ -444,7 +444,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(3)>td
               expect:
                 - タスク3
-                - 1999-01-01
+                - "1999-01-01"
                 - ""
                 - ""
                 - 編集
@@ -464,7 +464,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク2
-                - 2999-01-01
+                - "2999-01-01"
                 - Done!
                 - ""
                 - 編集
@@ -484,7 +484,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク3
-                - 1999-01-01
+                - "1999-01-01"
                 - ""
                 - ""
                 - 編集
@@ -504,7 +504,7 @@ tests:
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク1
-                - 2999-01-01
+                - "2999-01-01"
                 - ""
                 - ""
                 - 編集
@@ -524,7 +524,7 @@ tests:
             - target: click
               selector: form[action="/tasks/3/delete"]>input[type="submit"]
             - target: wait
-              second: 1
+              timeout: 1
             - target: exists
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(4)>td
               expect: false

@@ -35,7 +35,7 @@ export class DomExpect {
   second?: number;
   name?: string;
   timeout?: number;
-  text?: string;
+  value?: string;
 }
 
 export class Result {

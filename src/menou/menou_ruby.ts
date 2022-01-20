@@ -14,6 +14,8 @@ import puppeteer, { Browser } from "puppeteer";
 import urlJoin from "url-join";
 import uniqid from "uniqid";
 
+const sleep = (ms: number) => new Promise(res => setTimeout(() => res(true), ms));
+
 export class MenouRuby extends Menou {
   opts: SpawnOptionsWithoutStdio = {};
   DATABASE_URL = `${process.env.DATABASE_URL?.replace(/menou-next/g, `menou-${this.id}`)}`;
@@ -197,7 +199,6 @@ export class MenouRuby extends Menou {
     const result = []
 
     for(const expect of expects) {
-      console.log(expect.target)
       switch(expect.target) {
         case 'page_title': {
           const title = await page.title()
@@ -223,10 +224,78 @@ export class MenouRuby extends Menou {
           result.push({ok: res.every(r => r.ok), results: res})
           continue
         }
+        case 'exists': {
+          if(!expect.selector) {
+            result.push({ ok: false, error: 'invalid test' })
+            continue
+          }
+          const res = await page.evaluate((selector: string) => document.querySelectorAll(selector).length > 0, expect.selector)
+          if(expect.expect != res) {
+            result.push({ ok: false, error: `expected: ${expect.expect}, result: ${res}` })
+            continue
+          }
+          result.push({ ok: true, expect: `${expect.expect}` })
+          continue
+        }
         case 'screenshot': {
           const path = `screenshots/${this.id}-${uniqid()}.png`
           await page.screenshot({ path });
           result.push({ ok: true, name: expect.name, path })
+          continue
+        }
+        case 'click': {
+          if(!expect.selector) {
+            result.push({ ok: false, error: 'invalid test' })
+            continue
+          }
+          try {
+            await Promise.all([
+              page.waitForNavigation({waitUntil: ['load', 'networkidle2']}),
+              page.click(expect.selector)
+            ]);
+          } catch(e: any) {
+            result.push({ ok: false, error: e.message })
+            continue
+          }
+          result.push({ ok: true, expect: `${expect.selector}` })
+          continue
+        }
+        case 'wait': {
+          if(!expect.timeout) {
+            result.push({ ok: false, error: 'invalid test' })
+            continue
+          }
+          if(!expect.selector) {
+            await sleep(expect.timeout * 1000)
+          } else {
+            try {
+              await Promise.race([
+                page.waitForSelector(expect.selector, { timeout: expect.timeout * 1000 }),
+                new Promise(async res => {
+                  if(await page.evaluate((selector: string) => document.querySelector(selector), `${expect.selector}`) != null) res(null)
+                })
+              ])
+            } catch(e: any) {
+              result.push({ ok: false, error: e.message })
+              continue
+            }
+          }
+          continue
+        }
+        case 'input': {
+          if(!expect.selector || !expect.value) {
+            result.push({ ok: false, error: 'invalid test' })
+            continue
+          }
+          try {
+            await page.$eval(expect.selector, element => (element as HTMLInputElement).value = '');
+            await page.type(expect.selector, `${expect.value}`)
+          } catch(e: any) {
+            result.push({ ok: false, error: e.message })
+            console.log(e)
+            continue
+          }
+          result.push({ ok: true, expect: `${expect.value}` })
           continue
         }
       }
