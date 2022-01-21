@@ -35,6 +35,7 @@ app.disable('x-powered-by')
 app.use(urlencoded({ limit: '100mb', extended: true }))
 app.use(json({ limit: '100mb' }))
 app.use(express.static('./public'))
+app.use(express.static('/public'))
 app.use(connectLogger(logger, { level: 'info' }))
 app.set('view engine', 'pug')
 
