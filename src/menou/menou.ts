@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { Client as PgClient } from "pg";
-import { Test } from "../types/menou";
+import { TaskError, TaskResult, Test } from "../types/menou";
 import glob from "glob-promise";
 import { getPortPromise as getPort } from "portfinder";
 
@@ -18,7 +18,6 @@ export abstract class Menou {
   constructor() {
     this.repoDir = fs.mkdtempSync(path.join(os.tmpdir(), "menou-"));
     this.id = this.repoDir.split("menou-")[1]
-    console.log(this.repoDir)
   }
 
   protected async getPort() {
@@ -30,27 +29,27 @@ export abstract class Menou {
 
   async git_clone(repoUrl: string, options?: { branch?: string; path?: string }) {
     await simpleGit().clone(repoUrl, this.repoDir);
-    if (options?.branch != null) {
+    if (options?.branch != null && options.branch != "") {
       await simpleGit(this.repoDir).checkout(options.branch);
     }
-    if (options?.path != null) {
+    if (options?.path != null && options.path != "") {
       this.repoDir = path.join(this.repoDir, options.path)
     }
     return this.repoDir;
   }
 
-  abstract run_tests(tests: Test[]): Promise<any>;
+  abstract runTests(tests: Test[]): Promise<any>;
   abstract start(tests: Test[]): Promise<any>;
   abstract migrate(): void;
   // abstract checkSchema(): void;
   abstract clean(): Promise<any>;
 
-  async checkFileExists(files: string[]) {
-    const exists = await Promise.all(files.map(async (file) => {
+  checkFileExists(files: string[]): Promise<TaskResult[]> {
+    return Promise.all(files.map(async (file) => {
+      const errors: TaskError[] = [];
       const files = await glob(path.join(this.repoDir, file))
-      if (files.length == 0)
-        return { ok: false, error: `${file} not found`, expect: file }
-      return { ok: true, expect: file }
+      if (files.length == 0) errors.push({ message: `${file}が見つかりません` })
+      return { ok: true, title: file, target: 'file_exists', errors} as TaskResult
     }))
   }
 }

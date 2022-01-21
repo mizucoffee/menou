@@ -38,10 +38,26 @@ export class DomExpect {
   value?: string;
 }
 
-export class Result {
+export class TestResult {
   ok: boolean;
-  error?: string;
+  title: string;
+  items: TaskResult[];
+}
+
+export class TaskResult {
+  ok: boolean;
+  title: string;
+  target: string;
+  errors: TaskError[]
+}
+
+export class TaskError {
+  message: string;
   expect?: string;
-  value?: string;
-  sql?: string;
+  result?: string;
+}
+
+export class ScreenShot {
+  name: string;
+  path: string;
 }

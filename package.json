@@ -13,7 +13,7 @@
     "dev": "ts-node .",
     "dev:watch": "run-p tsc:watch start:watch",
     "start": "node dist",
-    "start:watch": "nodemon ."
+    "start:watch": "nodemon --trace-uncaught ."
   },
   "dependencies": {
     "@prisma/client": "3.1.1",
@@ -33,6 +33,7 @@
     "puppeteer": "^13.1.1",
     "rxjs": "^7.4.0",
     "simple-git": "^2.47.0",
+    "socket.io": "^4.4.1",
     "source-map-support": "^0.5.20",
     "tough-cookie": "^4.0.0",
     "uniqid": "^5.4.0",

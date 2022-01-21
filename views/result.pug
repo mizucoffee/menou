@@ -1,0 +1,115 @@
+doctype html
+html(lang="ja")
+  head
+    include includes/head
+    title Menou
+    style.
+      .logo {
+        width: 300px;
+        margin: 64px auto;
+        display: block;
+      }
+      .container {
+        max-width: 80rem;
+      }
+      .green {
+        color: #669866;
+      }
+      .red {
+        color: #b56363;
+      }
+      summary {
+        text-decoration: underline;
+        cursor: pointer;
+        list-style: none;
+        text-decoration: none;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      .container {
+        margin-top: 32px;
+        margin-bottom: 32px;
+      }
+      h4 {
+        margin-bottom: 0rem;
+      }
+      h5 {
+        margin-bottom: 0.2rem;
+        margin-top: 1.5rem;
+      }
+      p {
+        margin-bottom: 1.5rem;
+      }
+      hr {
+        margin: 2rem 0px;
+      }
+      h3+p {
+        font-size: 2.2rem;
+      }
+      .screenshot {
+        border: solid 1px #aaa;
+        cursor: pointer;
+      }
+      .full {
+        position: fixed;
+        width: 100vw;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        background: rgba(0,0,0,0.7);
+        object-fit: contain;
+        padding: 5vmin;
+      }
+      .message {
+        font-weight: bold;
+        padding-left: 12px;
+        margin-top: 1rem;
+      }
+      .result, .expect {
+        padding-left: 24px;
+        margin-top: 0.5rem;
+      }
+    script.
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.screenshot').forEach(e => {
+          e.addEventListener('click', () => {
+            e.classList.toggle('full')
+          })
+        })
+      })
+  body
+    img.logo(src='/menou_logo.png' alt='Menou')
+    section.container
+      h2 概要
+
+      h3 ターゲット: #{target}
+      hr
+
+      h3 リポジトリ:
+        a(href=repository) #{repository}
+      hr
+
+      h3 詳細:
+      each testResult in testResults
+        details(open = !testResult.ok)
+          summary
+            h4(class = testResult.ok ? "green" : "red") #{testResult.title}
+          each item in testResult.taskResults
+            h5
+              span(class = item.ok ? "green" : "red") #{item.ok ? " ✓" : "\u00A0✘\u00A0"}
+              span #{item.title}
+            each error in item.errors
+              if error.message
+                div.message #{error.message}
+              if error.result
+                div.result 結果: #{error.result}
+              if error.expect
+                div.expect 期待する値: #{error.expect}
+        hr
+
+      h3 スクリーンショット:
+      each screenshot in screenShots
+        h4 #{screenshot.name}
+        img.screenshot(src = `/${screenshot.path}`)
+        hr

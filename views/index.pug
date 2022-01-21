@@ -2,17 +2,52 @@ doctype html
 html(lang="ja")
   head
     include includes/head
-    title Document
+    title Menou
+    script(src="/socket.io/socket.io.js")
+    script.
+      const socket = io();
+      window.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('form');
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          document.getElementById('main').style.display = "none"
+          document.getElementById('analyze').style.display = "block"
+          document.getElementById('error').style.display = "none"
+          socket.emit('start', {
+            repo: document.getElementById('repo').value,
+            path: document.getElementById('path').value,
+            branch: document.getElementById('branch').value,
+            type: document.getElementById('type').value,
+          });
+        });
+      });
+      socket.on('error', (err) => {
+        console.log(err);
+        document.getElementById('main').style.display = "block"
+        document.getElementById('analyze').style.display = "none"
+        document.getElementById('error').style.display = "block"
+      });
+      socket.on('result', (data) => {
+        console.log(data)
+        const result = document.getElementById('result');
+        result.innerHTML = data.name;
+      });
+      socket.on('done', (id) => {
+        window.location.href = `/result/${id}`;
+      })
+    style.
+      #error {
+        color: red;
+      }
   body
-    //- include includes/header
-    img.logo(src='menou_logo.png' alt='Menou')
-    section.container
-      form(method='post' action='/analyze')
+    img.logo(src='/menou_logo.png' alt='Menou')
+    section.container#main
+      form#form
         fieldset
           label(for='repo')
             | GitHub Repository
             span.red *
-          input#repo(type='text' placeholder='https://github.com/mizucoffee/todo_app' name='repo')
+          input#repo(type='text' placeholder='https://github.com/mizucoffee/todo_app' name='repo' required)
           label(for='path') Path
           input#path(type='text' placeholder='express' name='path')
           label(for='branch') Branch
@@ -20,10 +55,12 @@ html(lang="ja")
           label(for='type')
             | Type
             span.red *
-          select#type(name='type')
-            option(value='01_count' selected='') 01_count
-            option(value='03_wikipedia') 03_wikipedia
-            option(value='08_express') 08_express
-            option(value='10_login') 10_login
-            option(value='16_todo') 16_todo
+          select#type(name='type' required)
+            each config in configList
+              option(value=config.id) #{config.name}
           input.button-primary(type='submit' value='Send')
+          h4#error(style="display: none")
+            | エラーが発生しました。
+    section.container#analyze(style="display: none")
+      h2.title 解析中
+      h3#result

@@ -10,15 +10,60 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Result {
+  id          Int          @id @default(autoincrement())
+  testResults TestResult[]
+  screenShots ScreenShot[]
+  target      String
+  repository  String
+  createdAt   DateTime     @default(now())
+}
+
+model TestResult {
+  id          Int          @id @default(autoincrement())
+  ok          Boolean      @default(false)
+  title       String
+  result      Result       @relation(fields: [resultId], references: [id])
+  taskResults TaskResult[]
+  resultId    Int
+}
+
+model TaskResult {
+  id           Int        @id @default(autoincrement())
+  ok           Boolean    @default(false)
+  title        String
+  target       String
+  testResult   TestResult @relation(fields: [testResultId], references: [id])
+  errors       Error[]
+  testResultId Int
+}
+
+model Error {
+  id           Int         @id @default(autoincrement())
+  message      String
+  expect       String?
+  result       String?
+  taskResult   TaskResult? @relation(fields: [taskResultId], references: [id])
+  taskResultId Int?
+}
+
+model ScreenShot {
+  id       Int     @id @default(autoincrement())
+  name     String
+  path     String
+  Result   Result? @relation(fields: [resultId], references: [id])
+  resultId Int?
+}
+
 model Session {
-  id              String    @id
-  sid             String    @unique
-  data            String
-  expiresAt       DateTime
+  id        String   @id
+  sid       String   @unique
+  data      String
+  expiresAt DateTime
 }
 
 model User {
-  id              Int       @id   @default(autoincrement())
-  name            String    @unique
+  id              Int    @id @default(autoincrement())
+  name            String @unique
   password_digest String
 }

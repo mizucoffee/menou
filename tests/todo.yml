@@ -1,11 +1,12 @@
 ---
-name: todo app
+name: Todo App
+id: 16_todo
 models: /models.rb
 tests:
   - name: "[FILE] ファイルの存在確認"
     tasks:
       - type: file_exists
-        expect:
+        expect: 
           files:
             - app.rb
             - models.rb

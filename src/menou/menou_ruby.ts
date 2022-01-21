@@ -3,9 +3,8 @@ import { observableSpawn, spawn } from "../tools";
 import { SpawnOptionsWithoutStdio } from "child_process";
 import { Client } from 'pg';
 import format from 'pg-format';
-import { Result, Test, Schema, DomExpect } from "../types/menou";
+import { Test, Schema, DomExpect, TestResult, TaskResult, TaskError, ScreenShot } from "../types/menou";
 import axios from "axios";
-import { Subscription } from "rxjs";
 import fs from "fs";
 import { URLSearchParams } from "url";
 import { wrapper } from 'axios-cookiejar-support';
@@ -13,8 +12,14 @@ import { CookieJar } from 'tough-cookie';
 import puppeteer, { Browser } from "puppeteer";
 import urlJoin from "url-join";
 import uniqid from "uniqid";
+import { Subscription } from "rxjs";
 
 const sleep = (ms: number) => new Promise(res => setTimeout(() => res(true), ms));
+
+interface Result {
+  testResults: TestResult[];
+  screenShots: ScreenShot[];
+}
 
 export class MenouRuby extends Menou {
   opts: SpawnOptionsWithoutStdio = {};
@@ -29,6 +34,7 @@ export class MenouRuby extends Menou {
   }));
   pid = 0;
   browser?: Browser;
+  listener?: (result: any) => void;
 
   constructor() {
     super();
@@ -38,73 +44,86 @@ export class MenouRuby extends Menou {
     };
   }
 
-  async run_tests(tests: Test[]) {
+  setListener(listener: (result: any) => void) {
+    this.listener = listener
+  }
+
+  async runTests(tests: Test[]): Promise<Result> {
+    const testResults: TestResult[] = [];
+    const screenShots: ScreenShot[] = [];
     for (const test of tests) {
-      console.log(`[TEST]: ${test.name}`)
+      const result: TaskResult[] = [];
+      if(this.listener) this.listener({name: test.name})
       for (const task of test.tasks) {
-        console.log(`[TASK]: ${task.type}`)
         try {
-          let res = null
           switch (task.type) {
             case 'db_schema': {
               if (!task.expect || !task.expect?.schema) break
-              res = await this.checkSchema(`${task.table}`, task.expect.schema || [])
+              result.push(...await this.checkSchema(`${task.table}`, task.expect.schema))
               break
             }
             case 'file_exists': {
               if (!task.expect || !task.expect?.files) break
-              res = await this.checkFileExists(task.expect.files)
+              result.push(...await this.checkFileExists(task.expect.files))
               break
             }
             case 'http_get_status': {
               if (!task.expect || !task.path) break
               const value = parseInt(`${task.expect.value}`)
               if (isNaN(value)) break
-              res = await this.checkHttpGetStatus(`${task.path}`, value)
+              result.push(await this.checkHttpGetStatus(`${task.path}`, value))
               break
             }
             case 'http_post_status': {
               if (!task.expect || !task.path) break
               const value = parseInt(`${task.expect.value}`)
               if (isNaN(value)) break
-              res = await this.checkHttpPostStatus(`${task.path}`, task.body, value)
+              result.push(await this.checkHttpPostStatus(`${task.path}`, task.body, value))
               break
             }
             case 'db_where': {
               if (!task.expect || !task.table || !task.where) break
-              res = await this.dbSelect(`${task.table}`, task.where, task.expect.result)
+              result.push(await this.dbWhere(`${task.table}`, task.where, task.expect.result))
               break
             }
             case 'dom': {
               if (!task.expect || !task.expect.dom || !task.path) break
-              res = await this.checkDom(task.path, task.expect.dom)
+              const dom = await this.checkDom(task.path, task.expect.dom)
+              result.push(...dom.tr)
+              screenShots.push(...dom.ss)
               break
             }
           }
-          if(Array.isArray(res)) {
-            for (const r of res) {
-              // if (!r.ok)
-                console.log(r)
-            }
-          } else {
-            // if(res && !res.ok) 
-              console.log(res)
-          }
         } catch (e: any) {
-          console.error({ ok: false, error: e.message })
+          result.push({
+            ok: false,
+            title: task.type,
+            target: task.type,
+            errors: [{ message: e.stack }]
+          })
         }
       }
+      testResults.push({ ok: result.every(r => r.ok), title: test.name, items: result })
     }
+    return { testResults, screenShots }
   }
 
   async migrate() {
-    await spawn('bundle', [], this.opts, console.log, console.error)
-    await spawn('bundle', ['exec', 'rake', 'db:create'], this.opts, console.log, console.error)
-    await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.opts, console.log, console.error)
-    await spawn('bundle', ['exec', 'rake', 'db:seed'], this.opts, console.log, console.error)
+    try {
+      await spawn('bundle', ['--without', 'development'], this.opts)
+      await spawn('bundle', ['exec', 'rake', 'db:create'], this.opts)
+      await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.opts)
+      await spawn('bundle', ['exec', 'rake', 'db:seed'], this.opts)
+    } catch (e) {
+      console.error(e)
+    }
   }
 
-  async start(tests: Test[]) {
+  async start(tests: Test[]): Promise<Result> {
+    let result: Result = {
+      testResults: [],
+      screenShots: []
+    };
     try {
       this.browser = await puppeteer.launch();
 
@@ -127,144 +146,164 @@ export class MenouRuby extends Menou {
         new Promise((_, rej) => setTimeout(() => rej(null), 5000))
       ])
 
-      await this.run_tests(tests)
+      result = await this.runTests(tests)
     } catch (e) {
-      console.log("Failed to start process")
+// console.log("Failed to start process")
     }
+    return result
   }
 
-  async checkSchema(table_name: string, schemas: Schema[]): Promise<Result[]> {
+  async checkSchema(table_name: string, schemas: Schema[]): Promise<TaskResult[]> {
     const client = new Client({ connectionString: this.DATABASE_URL })
     await client.connect()
     const res = await client.query(format("SELECT * FROM information_schema.columns WHERE table_name = %L;", table_name))
 
-    const result = schemas.map(schema => {
-      const column = res.rows.find(row => row.column_name === schema?.name)
-      if(!column) return { ok:false, error: `not found: ${schema?.name}` }
-      if(schema.options?.null !== undefined) {
-        if(schema.options.null) {
-          if (column.is_nullable != 'YES') return { ok: false, error: `nullable: ${schema?.name}` }
-        } else {
-          if (column.is_nullable != 'NO') return { ok: false, error: `nullable: ${schema?.name}` }
-        }
+    const results = schemas.map(schema => {
+      const errors: TaskError[] = [];
+
+      const column = res.rows.find(row => row.column_name === schema.name)
+      if(!column) {
+        errors.push({message: 'カラムが存在しません'})
+      } else if(schema.options?.null && schema.options.null !== (column.is_nullable == 'YES')) {
+        errors.push({message: "オプション'null'の値が正しくありません", expect: schema.options.null, result: `${column.is_nullable == 'YES'}`})
       }
-      return { ok: true }
+      return { ok: errors.length == 0 , target: 'db_schema', title: `${table_name}#${schema?.name}の型チェック`, errors }
     })
 
     await client.end()
-    return result
+    return results
   }
 
-  async dbSelect(table_name: string, where: any, expect: any): Promise<Result> {
+  async dbWhere(table_name: string, where: any, expect: any): Promise<TaskResult> {
+    const errors: TaskError[] = [];
+
     const client = new Client({ connectionString: this.DATABASE_URL })
     await client.connect()
 
     const res = await client.query(`SELECT * FROM ${table_name} WHERE ${Object.keys(where).map(key => `${key} = '${where[key]}'`).join(' AND ')};`)
 
-    if(res.rows.length === 0 && expect === null) return { ok: true }
-    if(res.rows.length === 0) return { ok: false, error: `not found: ${JSON.stringify(where)}` }
-    if(res.rows.length > 1) return { ok: false, error: 'multiple rows' }
-
-    Object.keys(expect).forEach(key => {
-      if(res.rows[0][key] !== expect[key]) return { ok: false, error: 'invalid value', value: res.rows[0][key], expected: expect[key], sql: `SELECT * FROM ${table_name} WHERE ${Object.keys(where).map(key => `${key} = '${where[key]}'`).join(' AND ')};` }
-    })
+    if (res.rows.length === 0 && expect != null) {
+      errors.push({message: 'レコードが存在しません'})
+    }
+    if (res.rows.length === 1 && expect === null) {
+      errors.push({message: 'レコードが存在します'})
+    }
+    if (res.rows.length === 1 && expect != null) {
+      Object.keys(expect).forEach(key => {
+        if (expect[key] != res.rows[0][key] && !(!Number.isNaN(new Date(res.rows[0][key]).getDate()) && new Date(res.rows[0][key]).getDate() == new Date(expect[key]).getDate())) {
+          if(!Number.isNaN(new Date(res.rows[0][key]).getDate())) {
+            errors.push({message: `${key}の値が正しくありません`, expect: `${new Date(res.rows[0][key])}`, result: `${new Date(res.rows[0][key])}`})
+          } else {
+            errors.push({message: `${key}の値が正しくありません`, expect: expect[key], result: res.rows[0][key]})
+          }  
+        }
+      })
+    }
 
     await client.end()
-    return { ok: true }
-  }
-
-  async checkHttpGetStatus(path: string, value: number): Promise<Result> {
-    const res = await this.client.get(path)
-    if (res.status !== value) return { ok: false, error: `expected: ${value}, result: ${res.status}` }
-    return { ok: true, expect: `${value}` }
-  }
-
-  async checkHttpPostStatus(path: string, body: any, value: number): Promise<Result> {
-    const params = new URLSearchParams();
-    for (const key in body) {
-      params.append(key, body[key]);
+    return {
+      ok: errors.length == 0,
+      target: `db_where`,
+      title: `SELECT * FROM ${table_name} WHERE ${Object.keys(where).map(key => `${key} = '${where[key]}'`).join(' AND ')};`,
+      errors
     }
-    const res = await this.client.post(path, params)
-    if (res.status !== value) return { ok: false, error: `expected: ${value}, result: ${res.status}` }
-    return { ok: true, expect: `${value}` }
   }
 
-  async checkDom(path: string, expects: DomExpect[]) {
-    if(!this.browser) return { ok: false, error: 'browser not found' }
-    const page = await this.browser?.newPage()
+  async checkHttpGetStatus(path: string, value: number): Promise<TaskResult> {
+    const errors: TaskError[] = [];
 
+    const res = await this.client.get(path)
+    if (res.status !== value)
+      errors.push({message: 'ステータスが正しくありません', expect: `${value}`, result: `${res.status}`})
+    return { ok: errors.length == 0, target: `http_get_status`, title: `GET ${path}`, errors }
+  }
+
+  async checkHttpPostStatus(path: string, body: any, value: number): Promise<TaskResult> {
+    const errors: TaskError[] = [];
+    
+    const params = new URLSearchParams();
+    for (const key in body) params.append(key, body[key]);
+
+    const res = await this.client.post(path, params)
+    if (res.status !== value)
+      errors.push({message: 'ステータスが正しくありません', expect: `${value}`, result: `${res.status}`})
+    return { ok: errors.length == 0, target: `http_post_status`, title: `POST ${path}`, errors }
+  }
+
+  async checkDom(path: string, expects: DomExpect[]): Promise<{tr: TaskResult[], ss: ScreenShot[]}> {
+    const results: TaskResult[] = []
+    const screenshots: ScreenShot[] = []
+    const target = 'dom'
+
+    if(!this.browser) return {tr: [{ ok: false, target: 'dom', title: 'DOM解析システムの準備', errors: [{message: 'Menou DOM解析システムを起動出来ませんでした'}] }], ss: screenshots}
+
+    const page = await this.browser?.newPage()
     await page.goto(urlJoin(`${this.client.defaults.baseURL}`, path));
     await page.setViewport({ width: 1920, height: 1080 })
 
-    const result = []
-
     for(const expect of expects) {
+      const errors: TaskError[] = [];
+      let title = 'DOM検証'
       switch(expect.target) {
         case 'page_title': {
-          const title = await page.title()
-          if(title !== expect.expect) {
-            result.push({ ok: false, error: `expected: ${expect.expect}, result: ${title}` })
-            continue
-          }
-          result.push({ ok: true, expect: `${expect.expect}` })
-          continue
+          title = 'ページ名の検証'
+          const pageTitle = await page.title()
+          if(pageTitle !== expect.expect)
+            errors.push({message: 'ページ名が正しくありません', expect: expect.expect, result: pageTitle})
+          break
         }
         case 'content': {
-          if(!expect.selector || !Array.isArray(expect.expect)) {
-            result.push({ ok: false, error: 'invalid test' })
-            continue
-          }
+          if(!expect.selector || !Array.isArray(expect.expect)) continue
+          title = `要素'${expect.selector}'の値`
+
           const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
-          
-          const res = expect.expect.map((e, i) => {
+
+          if(texts.length == 0) {
+            errors.push({message: `要素'${expect.selector}'が存在しません`})
+            break
+          }
+
+          expect.expect.forEach((e, i) => {
             if(e == null) e = '';
-            if(texts[i] != e) return { ok: false, error: `expected: ${e}, result: ${texts[i]}` }
-            return { ok: true, expect: `${e}` }
+            if(texts[i] != e) errors.push({ message: `要素'${expect.selector}[${i}]'の値が正しくありません`, expect: e, result: texts[i] })
           })
-          result.push({ok: res.every(r => r.ok), results: res})
-          continue
+          break
         }
         case 'exists': {
-          if(!expect.selector) {
-            result.push({ ok: false, error: 'invalid test' })
-            continue
-          }
+          if(!expect.selector) continue
+          title = `要素'${expect.selector}'の存在状態`
+
           const res = await page.evaluate((selector: string) => document.querySelectorAll(selector).length > 0, expect.selector)
           if(expect.expect != res) {
-            result.push({ ok: false, error: `expected: ${expect.expect}, result: ${res}` })
-            continue
+            errors.push({message: `要素'${expect.selector}'が存在しません`})
+            break
           }
-          result.push({ ok: true, expect: `${expect.expect}` })
-          continue
+          break
         }
         case 'screenshot': {
-          const path = `screenshots/${this.id}-${uniqid()}.png`
+          if(!expect.name) continue
+          const path = `public/screenshots/${this.id}-${uniqid()}.png`
           await page.screenshot({ path });
-          result.push({ ok: true, name: expect.name, path })
+          screenshots.push({ name: expect.name, path })
           continue
         }
         case 'click': {
-          if(!expect.selector) {
-            result.push({ ok: false, error: 'invalid test' })
-            continue
-          }
+          if(!expect.selector) continue
+          title = `要素'${expect.selector}'をクリック`
+
           try {
             await Promise.all([
-              page.waitForNavigation({waitUntil: ['load', 'networkidle2']}),
+              page.waitForNavigation({waitUntil: ['load', 'networkidle2'], timeout: 5000}),
               page.click(expect.selector)
             ]);
           } catch(e: any) {
-            result.push({ ok: false, error: e.message })
-            continue
+            errors.push({ message: e.message })
           }
-          result.push({ ok: true, expect: `${expect.selector}` })
-          continue
+          break
         }
         case 'wait': {
-          if(!expect.timeout) {
-            result.push({ ok: false, error: 'invalid test' })
-            continue
-          }
+          if(!expect.timeout) continue
+
           if(!expect.selector) {
             await sleep(expect.timeout * 1000)
           } else {
@@ -276,40 +315,33 @@ export class MenouRuby extends Menou {
                 })
               ])
             } catch(e: any) {
-              result.push({ ok: false, error: e.message })
-              continue
+              errors.push({ message: e.message })
             }
           }
-          continue
+          break
         }
         case 'input': {
-          if(!expect.selector || !expect.value) {
-            result.push({ ok: false, error: 'invalid test' })
-            continue
-          }
+          if(!expect.selector || !expect.value) continue
           try {
             await page.$eval(expect.selector, element => (element as HTMLInputElement).value = '');
             await page.type(expect.selector, `${expect.value}`)
           } catch(e: any) {
-            result.push({ ok: false, error: e.message })
-            console.log(e)
-            continue
+            errors.push({ message: e.message })
           }
-          result.push({ ok: true, expect: `${expect.value}` })
-          continue
+          break
         }
       }
+      results.push({ ok: errors.length == 0, title, target, errors })
     }
 
     await page.close();
-
-    return result
+    return { tr: results, ss: screenshots }
   }
 
   async clean() {
-    process.kill(this.pid)
-    fs.rmSync(this.repoDir, { recursive: true })
-    await spawn('bundle', ['exec', 'rake', 'db:drop'], this.opts)
     await this.browser?.close()
+    process.kill(this.pid);
+    // await spawn('bundle', ['exec', 'rake', 'db:drop'], this.opts, console.log, console.error)
+    fs.rmSync(this.repoDir, { recursive: true })
   }
 }
