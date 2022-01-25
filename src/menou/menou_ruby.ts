@@ -13,6 +13,7 @@ import puppeteer, { Browser } from "puppeteer";
 import urlJoin from "url-join";
 import uniqid from "uniqid";
 import { Subscription } from "rxjs";
+import NodePath from "path";
 
 const sleep = (ms: number) => new Promise(res => setTimeout(() => res(true), ms));
 
@@ -306,9 +307,9 @@ export class MenouRuby extends Menou {
         case 'screenshot': {
           if(!expect.name) continue
           const id = `${this.id}-${uniqid()}`
-          const path = `public/screenshots/${id}.png`
-          await page.screenshot({ path });
-          screenshots.push({ name: expect.name, path: `screenshots/${id}.png` })
+          const ssPath = NodePath.join(process.env.SCREENSHOTS_DIR || `${NodePath.dirname(`${require?.main?.filename}`)}/../public/screenshots/` , `/${id}.png`)
+          await page.screenshot({ path: ssPath });
+          screenshots.push({ name: expect.name, path: `/screenshots/${id}.png` })
           continue
         }
         case 'click': {
