@@ -275,9 +275,27 @@ export class MenouRuby extends Menou {
 
           const res = await page.evaluate((selector: string) => document.querySelectorAll(selector).length > 0, expect.selector)
           if(expect.expect != res) {
-            errors.push({message: `要素'${expect.selector}'が存在しません`})
+            errors.push({message: `要素'${expect.selector}'の存在状態が正しくありません`, expect: expect.expect, result: `${res}`})
             break
           }
+          break
+        }
+        case 'displayed': {
+          if(!expect.selector) continue
+          title = `要素'${expect.selector}'の存在状態`
+
+          const res = await page.evaluate((selector: string) => {
+            const element = document.querySelector(selector) as HTMLElement
+            if(!element) return false
+            if(element.style.display == 'none') return false
+            if(element.style.visibility == 'hidden') return false
+            return true
+          }, expect.selector)
+          if(expect.expect != res) {
+            errors.push({message: `要素'${expect.selector}'の表示状態が正しくありません`, expect: expect.expect, result: `${res}`})
+            break
+          }
+
           break
         }
         case 'screenshot': {
