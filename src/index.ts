@@ -35,7 +35,7 @@ app.disable('x-powered-by')
 app.use(urlencoded({ limit: '100mb', extended: true }))
 app.use(json({ limit: '100mb' }))
 app.use(express.static('./public'))
-app.use(express.static('/public'))
+// app.use(express.static('/public'))
 app.use(connectLogger(logger, { level: 'info' }))
 app.set('view engine', 'pug')
 
@@ -114,9 +114,9 @@ io.on('connection', socket => {
                   id: taskResult.id
                 }
               },
-              message: tr3.message,
-              expect: tr3.expect,
-              result: tr3.result,
+              message: tr3.message ? tr3.message : "",
+              expect: tr3.expect ? `${tr3.expect}` : null,
+              result: tr3.result ? `${tr3.result}` : null,
             }
           })
         }

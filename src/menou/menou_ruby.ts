@@ -148,7 +148,7 @@ export class MenouRuby extends Menou {
 
       result = await this.runTests(tests)
     } catch (e) {
-// console.log("Failed to start process")
+      console.log("Failed to start process")
     }
     return result
   }
@@ -164,8 +164,13 @@ export class MenouRuby extends Menou {
       const column = res.rows.find(row => row.column_name === schema.name)
       if(!column) {
         errors.push({message: 'カラムが存在しません'})
-      } else if(schema.options?.null && schema.options.null !== (column.is_nullable == 'YES')) {
-        errors.push({message: "オプション'null'の値が正しくありません", expect: schema.options.null, result: `${column.is_nullable == 'YES'}`})
+      } else {
+        if(schema.options?.null && schema.options.null !== (column.is_nullable == 'YES')) {
+          errors.push({message: "オプション'null'の値が正しくありません", expect: schema.options.null, result: `${column.is_nullable == 'YES'}`})
+        }
+        if (schema.options?.default && schema.options.default !== column.column_default) {
+          errors.push({message: "オプション'default'の値が正しくありません", expect: schema.options.default, result: column.column_default})
+        }
       }
       return { ok: errors.length == 0 , target: 'db_schema', title: `${table_name}#${schema?.name}の型チェック`, errors }
     })
@@ -300,9 +305,10 @@ export class MenouRuby extends Menou {
         }
         case 'screenshot': {
           if(!expect.name) continue
-          const path = `public/screenshots/${this.id}-${uniqid()}.png`
+          const id = `${this.id}-${uniqid()}`
+          const path = `public/screenshots/${id}.png`
           await page.screenshot({ path });
-          screenshots.push({ name: expect.name, path })
+          screenshots.push({ name: expect.name, path: `screenshots/${id}.png` })
           continue
         }
         case 'click': {

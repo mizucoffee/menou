@@ -53,69 +53,75 @@ tests:
       - type: dom
         path: /
         expect:
-          - target: page_title
-            expect: Document
-          - target: displayed
-            selector: h1
-            expect: true
-          - target: displayed
-            selector: form[action="/plus"][method="POST"]
-            expect: true
-          - target: displayed
-            selector: form[action="/minus"][method="POST"]
-            expect: true
-          - target: displayed
-            selector: form>input[type="submit"][value="+"]
-            expect: true
-          - target: displayed
-            selector: form>input[type="submit"][value="-"]
-            expect: true
-          - target: content
-            selector: h1
-            expect:
-              - 0
-          - target: screenshot
-            name: トップページ
+          dom:
+            - target: page_title
+              expect: Document
+            - target: displayed
+              selector: h1
+              expect: true
+            - target: displayed
+              selector: form[action="/plus"][method="POST"]
+              expect: true
+            - target: displayed
+              selector: form[action="/minus"][method="POST"]
+              expect: true
+            - target: displayed
+              selector: form>input[type="submit"][value="+"]
+              expect: true
+            - target: displayed
+              selector: form>input[type="submit"][value="-"]
+              expect: true
+            - target: content
+              selector: h1
+              expect:
+                - 0
+            - target: screenshot
+              name: トップページ
       - type: http_post_status
         path: /plus
-        expect: 303
+        expect:
+          value: 303
       - type: dom
         path: /
         expect:
-          - target: content
-            selector: h1
-            expect:
-              - 1
+          dom:
+            - target: content
+              selector: h1
+              expect:
+                - 1
       - type: http_post_status
         path: /minus
-        expect: 303
+        expect:
+          value: 303
       - type: dom
         path: /
         expect:
-          - target: content
-            selector: h1
-            expect:
-              - 0
+          dom:
+            - target: content
+              selector: h1
+              expect:
+                - 0
   - name: "[TRANSITION] プラス/マイナスボタン"
     tasks:
       - type: dom
         path: /
         expect:
-          - target: content
-            selector: h1
-            expect:
-              - 0
-          - target: click
-            selector: form>input[type="submit"][value="+"]
-          - target: content
-            selector: h1
-            expect:
-              - 1
-          - target: screenshot
-            name: トップページ（+1カウントした状態）
-          - target: click
-            selector: form>input[type="submit"][value="-"]
-          - target: content
-            selector: h1
-            expect:
-              - 0
+          dom:
+            - target: content
+              selector: h1
+              expect:
+                - 0
+            - target: click
+              selector: form>input[type="submit"][value="+"]
+            - target: content
+              selector: h1
+              expect:
+                - 1
+            - target: screenshot
+              name: トップページ（+1カウントした状態）
+            - target: click
+              selector: form>input[type="submit"][value="-"]
+            - target: content
+              selector: h1
+              expect:
+                - 0
