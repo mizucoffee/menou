@@ -53,7 +53,6 @@ app.get("/screenshots/*", (req, res) => {
   res.sendFile(path.join(process.env.SCREENSHOTS_DIR || `${appDir}/../public`, req.path));
 })
 
-
 io.on('connection', socket => {
   socket.on('start', async message => {
     const config = configList.find(config => config.id === message.type);

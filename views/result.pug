@@ -79,7 +79,8 @@ html(lang="ja")
         })
       })
   body
-    img.logo(src='/menou_logo.png' alt='Menou')
+    a(href="/")
+      img.logo(src='/menou_logo.png' alt='Menou')
     section.container
       h2 概要
 
@@ -111,5 +112,5 @@ html(lang="ja")
       h3 スクリーンショット:
       each screenshot in screenShots
         h4 #{screenshot.name}
-        img.screenshot(src = `/${screenshot.path}`)
+        img.screenshot(src=screenshot.path)
         hr
