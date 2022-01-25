@@ -125,7 +125,7 @@ export class MenouRuby extends Menou {
       screenShots: []
     };
     try {
-      this.browser = await puppeteer.launch();
+      this.browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 
       const port = await this.getPort()
       this.client.defaults.baseURL = `http://localhost:${port}/`
