@@ -49,8 +49,8 @@ app.get("/result/:id", async (req, res) => {
   res.render('result', result);
 })
 
-app.get("/screenshots/*", (req, res) => {
-  res.sendFile(path.join(process.env.SCREENSHOTS_DIR || `${appDir}/../public`, req.path));
+app.get("/screenshots/:filename", (req, res) => {
+  res.sendFile(path.join(process.env.SCREENSHOTS_DIR || `${appDir}/../public`, req.params.filename));
 })
 
 io.on('connection', socket => {
