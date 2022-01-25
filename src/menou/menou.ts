@@ -28,14 +28,19 @@ export abstract class Menou {
   }
 
   async git_clone(repoUrl: string, options?: { branch?: string; path?: string }) {
-    await simpleGit().clone(repoUrl, this.repoDir);
-    if (options?.branch != null && options.branch != "") {
-      await simpleGit(this.repoDir).checkout(options.branch);
+    try {
+      await simpleGit().clone(repoUrl, this.repoDir);
+      if (options?.branch != null && options.branch != "") {
+        await simpleGit(this.repoDir).checkout(options.branch);
+      }
+      if (options?.path != null && options.path != "") {
+        this.repoDir = path.join(this.repoDir, options.path)
+      }
+      return this.repoDir;
+    } catch (e) {
+      console.log(e)
     }
-    if (options?.path != null && options.path != "") {
-      this.repoDir = path.join(this.repoDir, options.path)
-    }
-    return this.repoDir;
+    return null
   }
 
   abstract runTests(tests: Test[]): Promise<any>;

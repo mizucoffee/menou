@@ -63,7 +63,12 @@ io.on('connection', socket => {
       socket.emit('result', result)
     })
     socket.emit('result', {ok: true, name: "[PREPARE] Git clone"})
-    await menou.git_clone(message.repo, { branch: message.branch, path: message.path })
+    const git_clone_res = await menou.git_clone(message.repo, { branch: message.branch, path: message.path })
+    if (git_clone_res == null) {
+      console.log("[ERROR] Git clone failed")
+      io.to(socket.id).emit('error', "Git clone failed")
+      return;
+    }
     socket.emit('result', {ok: true, name: "[PREPARE] DB migration"})
     await menou.migrate()
     const menouResult = await menou.start(config.tests)
