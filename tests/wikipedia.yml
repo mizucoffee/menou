@@ -1,0 +1,82 @@
+---
+name: Wikipedia App
+id: 03_wikipedia
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        expect:
+          files:
+            - views/index.erb
+            - Gemfile
+            - app.rb
+            - config.ru
+  - name: "[UI] トップページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: page_title
+              expect:
+                - Wikipedia
+                - wikipedia
+            - target: displayed
+              selector: form[action="/"][method="get"]
+              expect: true
+            - target: displayed
+              selector: form>input[type="text"][name="keyword"]
+              expect: true
+            - target: displayed
+              selector: form>input[type="submit"][value="検索"]
+              expect: true
+            - target: css
+              selector: body
+              expect:
+                - property: font-family
+                  value: 游ゴシック, "Yu Gothic", YuGothic, sans-serif
+            - target: screenshot
+              name: トップページ
+  - name: "[UI] 検索結果表示"
+    tasks:
+      - type: dom
+        path: /?keyword=Ruby
+        expect:
+          dom:
+            - target: page_title
+              expect:
+                - Wikipedia
+                - wikipedia
+            - target: displayed
+              selector: p>strong
+              expect: true
+            - target: displayed
+              selector: p>a
+              expect: true
+            - target: content
+              selector: p>strong
+              expect:
+                - Ruby
+            - target: content
+              selector: p>a
+              expect:
+                - Ruby
+  - name: "[TRANSITION] 検索"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: input
+              selector: form>input[type="text"][name="keyword"]
+              value: Ruby
+            - target: click
+              selector: form>input[type="submit"][value="検索"]
+            - target: wait
+              timeout: 10
+              selector: p>strong
+              expect: Ruby
+            - target: path
+              expect: /?keyword=Ruby
+            - target: screenshot
+              name: 検索結果ページ

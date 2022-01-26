@@ -23,7 +23,6 @@ interface Result {
 }
 
 export class MenouRuby extends Menou {
-  opts: SpawnOptionsWithoutStdio = {};
   DATABASE_URL = `${process.env.DATABASE_URL?.replace(/menou-next/g, `menou-${this.id}`)}`;
   client = wrapper(axios.create({
     baseURL: `http://localhost/`,
@@ -39,10 +38,13 @@ export class MenouRuby extends Menou {
 
   constructor() {
     super();
-    this.opts = {
+  }
+
+  getOpts() {
+    return {
       cwd: this.repoDir,
       env: { ...process.env, DATABASE_URL: this.DATABASE_URL }
-    };
+    }
   }
 
   setListener(listener: (result: any) => void) {
@@ -111,10 +113,10 @@ export class MenouRuby extends Menou {
 
   async migrate() {
     try {
-      await spawn('bundle', ['--without', 'development'], this.opts)
-      await spawn('bundle', ['exec', 'rake', 'db:create'], this.opts)
-      await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.opts)
-      await spawn('bundle', ['exec', 'rake', 'db:seed'], this.opts)
+      await spawn('bundle', ['--without', 'development'], this.getOpts())
+      await spawn('bundle', ['exec', 'rake', 'db:create'], this.getOpts())
+      await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.getOpts())
+      await spawn('bundle', ['exec', 'rake', 'db:seed'], this.getOpts())
     } catch (e) {
       console.error(e)
     }
@@ -130,7 +132,7 @@ export class MenouRuby extends Menou {
 
       const port = await this.getPort()
       this.client.defaults.baseURL = `http://localhost:${port}/`
-      const { observable, pid } = observableSpawn('ruby', ["app.rb", '-o', '0.0.0.0', '-p', `${port}`], this.opts)
+      const { observable, pid } = observableSpawn('ruby', ["app.rb", '-o', '0.0.0.0', '-p', `${port}`], this.getOpts())
       if(pid) this.pid = pid
 
       await Promise.race([
@@ -245,6 +247,7 @@ export class MenouRuby extends Menou {
 
     const page = await this.browser?.newPage()
     await page.goto(urlJoin(`${this.client.defaults.baseURL}`, path));
+    console.log(urlJoin(`${this.client.defaults.baseURL}`, path))
     await page.setViewport({ width: 1920, height: 1080 })
 
     for(const expect of expects) {
@@ -254,8 +257,14 @@ export class MenouRuby extends Menou {
         case 'page_title': {
           title = 'ページ名の検証'
           const pageTitle = await page.title()
-          if(pageTitle !== expect.expect)
-            errors.push({message: 'ページ名が正しくありません', expect: expect.expect, result: pageTitle})
+          if(Array.isArray(expect.expect)) {
+            if(!expect.expect.includes(pageTitle)) {
+              errors.push({message: 'ページ名が正しくありません', expect: expect.expect.join(", "), result: pageTitle})
+            }
+          } else {
+            if(pageTitle !== expect.expect)
+              errors.push({message: 'ページ名が正しくありません', expect: expect.expect, result: pageTitle})
+          }
           break
         }
         case 'content': {
@@ -265,13 +274,37 @@ export class MenouRuby extends Menou {
           const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
 
           if(texts.length == 0) {
-            errors.push({message: `要素'${expect.selector}'が存在しません`})
+            errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
             break
           }
 
           expect.expect.forEach((e, i) => {
             if(e == null) e = '';
-            if(texts[i] != e) errors.push({ message: `要素'${expect.selector}[${i}]'の値が正しくありません`, expect: e, result: texts[i] })
+            if(texts[i] != e) errors.push({ message: `要素'${expect.selector}'の値が正しくありません`, expect: e, result: texts[i] })
+          })
+          break
+        }
+        case 'css': {
+          if(!expect.selector || !Array.isArray(expect.expect)) continue
+          title = `要素'${expect.selector}'の値`
+
+          const styles = await page.evaluate((selector: string, expects: {property: string, value: string}[]) => {
+            return Array.from(document.querySelectorAll(selector))
+              .map(e => expects.reduce((data, expect) => {
+                data[expect.property] = getComputedStyle(e).getPropertyValue(expect.property)
+                return data
+              }, {} as any))
+          }, expect.selector, expect.expect)
+
+          if(styles.length == 0) {
+            errors.push({message: `要素'${expect.selector}'が存在しません`})
+            break
+          }
+
+          styles.forEach((e: any, i) => {
+            expect.expect.forEach((ex: {property: string, value: string}) => {
+              if(e[ex.property] != ex.value) errors.push({ message: `要素'${expect.selector}[${i}]'の値が正しくありません`, expect: `${ex.property}: ${ex.value}`, result: `${ex.property}: ${e[ex.property]}` })
+            })
           })
           break
         }

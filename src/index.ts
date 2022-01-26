@@ -40,7 +40,7 @@ app.set('view engine', 'pug')
 
 // Router
 app.get("/", (req, res) => {
-  res.render('index', { configList: configList.map(config => ({ id: config.id, name: config.name}) )});
+  res.render('index', { configList: configList.map(config => ({ id: config.id, name: config.name}) ).sort((a, b) => a.id.localeCompare(b.id)) });
 });
 
 app.get("/result/:id", async (req, res) => {
@@ -50,7 +50,7 @@ app.get("/result/:id", async (req, res) => {
 })
 
 app.get("/screenshots/:filename", (req, res) => {
-  res.sendFile(path.join(process.env.SCREENSHOTS_DIR || `${appDir}/../public`, req.params.filename));
+  res.sendFile(path.join(process.env.SCREENSHOTS_DIR || `${appDir}/../public/screenshots/`, req.params.filename));
 })
 
 io.on('connection', socket => {
