@@ -72,6 +72,7 @@ tests:
               value: Ruby
             - target: click
               selector: form>input[type="submit"][value="検索"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: p>strong
