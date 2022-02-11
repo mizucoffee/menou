@@ -117,8 +117,7 @@ export class MenouRuby extends Menou {
       await spawn('bundle', ['--without', 'development'], this.getOpts())
       await spawn('bundle', ['exec', 'rake', 'db:create'], this.getOpts())
       await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.getOpts())
-      const files = await glob(path.join(this.repoDir, "db/seeds.rb"))
-      if (files.length != 0) await spawn('bundle', ['exec', 'rake', 'db:seed'], this.getOpts())
+      await spawn('bundle', ['exec', 'rake', 'db:seed'], this.getOpts())
     } catch (e) {
       console.error(e)
     }
@@ -130,7 +129,7 @@ export class MenouRuby extends Menou {
       screenShots: []
     };
     try {
-      this.browser = await puppeteer.launch({ args: ['--no-sandbox'], headless: false });
+      this.browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 
       const port = await this.getPort()
       this.client.defaults.baseURL = `http://localhost:${port}/`
