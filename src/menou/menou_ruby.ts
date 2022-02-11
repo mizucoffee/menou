@@ -1,6 +1,5 @@
 import { Menou } from "./menou";
 import { observableSpawn, spawn } from "../tools";
-import { SpawnOptionsWithoutStdio } from "child_process";
 import { Client } from 'pg';
 import format from 'pg-format';
 import { Test, Schema, DomExpect, TestResult, TaskResult, TaskError, ScreenShot } from "../types/menou";
@@ -14,6 +13,8 @@ import urlJoin from "url-join";
 import uniqid from "uniqid";
 import { Subscription } from "rxjs";
 import NodePath from "path";
+import glob from "glob-promise";
+import path from "path";
 
 const sleep = (ms: number) => new Promise(res => setTimeout(() => res(true), ms));
 
@@ -116,7 +117,8 @@ export class MenouRuby extends Menou {
       await spawn('bundle', ['--without', 'development'], this.getOpts())
       await spawn('bundle', ['exec', 'rake', 'db:create'], this.getOpts())
       await spawn('bundle', ['exec', 'rake', 'db:migrate'], this.getOpts())
-      await spawn('bundle', ['exec', 'rake', 'db:seed'], this.getOpts())
+      const files = await glob(path.join(this.repoDir, "db/seeds.rb"))
+      if (files.length != 0) await spawn('bundle', ['exec', 'rake', 'db:seed'], this.getOpts())
     } catch (e) {
       console.error(e)
     }
