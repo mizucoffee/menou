@@ -46,7 +46,9 @@ tests:
         expect:
           dom:
             - target: page_title
-              expect: フォーム
+              expect:
+                - フォーム
+                - Express
             - target: displayed
               selector: input#x
               expect: true
@@ -65,7 +67,9 @@ tests:
         expect:
           dom:
             - target: page_title
-              expect: 最寄り駅リスト
+              expect:
+                - 最寄り駅リスト
+                - Express
             - target: contents
               selector: .name
               expect:
@@ -103,6 +107,7 @@ tests:
               value: "34.71098733537241"
             - target: click
               selector: button[value="検索"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: .container-fluid>h2
@@ -148,6 +153,7 @@ tests:
               expect: true
             - target: click
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+              type: navigation
             - target: exists
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .fas.fa-heart.heart
               expect: true
@@ -160,6 +166,7 @@ tests:
                 - 135.0, 35.0
             - target: click
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="解除"]
+              type: navigation
             - target: exists
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .far.fa-heart.text-muted
               expect: true
@@ -168,15 +175,13 @@ tests:
               expect: false
             - target: click
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+              type: navigation
             - target: screenshot
               name: トップページ（お気に入り）
   - name: "[UI] 削除"
     tasks:
       - type: http_get_status
-        path: /list
-        query:
-          x: 135.5
-          y: 35.5
+        path: /list?x=135.5&y=35.5
         expect:
           value: 200
       - type: dom
@@ -188,16 +193,14 @@ tests:
               expect: true
             - target: click
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) form[action="4/delete"][method="post"] button[type="submit"]
+              type: navigation
             - target: exists
               selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(4)
               expect: false
   - name: "[UI] モーダル"
     tasks:
       - type: dom
-        path: /list
-        query:
-          x: 139.73426180982665
-          y: 35.643120277039536
+        path: /list?x=139.73426180982665&y=35.643120277039536
         expect:
           dom:
             - target: displayed
@@ -210,7 +213,7 @@ tests:
             - target: click
               selector: .card
             - target: wait
-              second: 1
+              timeout: 1
             - target: displayed
               selector: div#modal
               expect: true
@@ -221,9 +224,9 @@ tests:
               expect:
                 - 三田
             - target: click
-              selector: button.close[type="button"][data-dismiss="modal"][aria-label="Close"]
+              selector: button.close[type="button"][data-bs-dismiss="modal"][aria-label="Close"]
             - target: wait
-              second: 1
+              timeout: 1
             - target: displayed
               selector: div#modal
               expect: false

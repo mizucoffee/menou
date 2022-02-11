@@ -32,10 +32,10 @@ export class DomExpect {
   target: string;
   expect: any;
   selector?: string;
-  second?: number;
   name?: string;
   timeout?: number;
   value?: string;
+  type?: string;
 }
 
 export class TestResult {

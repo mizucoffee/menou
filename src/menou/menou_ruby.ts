@@ -128,7 +128,7 @@ export class MenouRuby extends Menou {
       screenShots: []
     };
     try {
-      this.browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+      this.browser = await puppeteer.launch({ args: ['--no-sandbox'], headless: false });
 
       const port = await this.getPort()
       this.client.defaults.baseURL = `http://localhost:${port}/`
@@ -252,162 +252,172 @@ export class MenouRuby extends Menou {
     for(const expect of expects) {
       const errors: TaskError[] = [];
       let title = 'DOM検証'
-      switch(expect.target) {
-        case 'page_title': {
-          title = 'ページ名の検証'
-          const pageTitle = await page.title()
-          if(Array.isArray(expect.expect)) {
-            if(!expect.expect.includes(pageTitle)) {
-              errors.push({message: 'ページ名が正しくありません', expect: expect.expect.join(", "), result: pageTitle})
+      try {
+        switch(expect.target) {
+          case 'page_title': {
+            title = 'ページ名の検証'
+            const pageTitle = await page.title()
+            if(Array.isArray(expect.expect)) {
+              if(!expect.expect.includes(pageTitle)) {
+                errors.push({message: 'ページ名が正しくありません', expect: expect.expect.join(", "), result: pageTitle})
+              }
+            } else {
+              if(pageTitle !== expect.expect)
+                errors.push({message: 'ページ名が正しくありません', expect: expect.expect, result: pageTitle})
             }
-          } else {
-            if(pageTitle !== expect.expect)
-              errors.push({message: 'ページ名が正しくありません', expect: expect.expect, result: pageTitle})
-          }
-          break
-        }
-        case 'content': {
-          if(!expect.selector || !Array.isArray(expect.expect)) continue
-          title = `要素'${expect.selector}'の値`
-
-          const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
-
-          if(texts.length == 0) {
-            errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
             break
           }
+          case 'content': {
+            if(!expect.selector || !Array.isArray(expect.expect)) continue
+            title = `要素'${expect.selector}'の値`
 
-          texts.forEach(text => {
-            if(!expect.expect.includes(text)) {
-              errors.push({message: `要素'${expect.selector}'の値が正しくありません`, expect: expect.expect.join(", "), result: text})
+            const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
+
+            if(texts.length == 0) {
+              errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
+              break
             }
-          })
-          break
-        }
-        case 'contents': {
-          if(!expect.selector || !Array.isArray(expect.expect)) continue
-          title = `要素'${expect.selector}'の値`
 
-          const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
-
-          if(texts.length == 0) {
-            errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
-            break
-          }
-
-          expect.expect.forEach((e, i) => {
-            if(e == null) e = '';
-            if(texts[i] != e) errors.push({ message: `要素'${expect.selector}'の値が正しくありません`, expect: e, result: texts[i] })
-          })
-          break
-        }
-        case 'css': {
-          if(!expect.selector || !Array.isArray(expect.expect)) continue
-          title = `要素'${expect.selector}'の値`
-
-          const styles = await page.evaluate((selector: string, expects: {property: string, value: string}[]) => {
-            return Array.from(document.querySelectorAll(selector))
-              .map(e => expects.reduce((data, expect) => {
-                data[expect.property] = getComputedStyle(e).getPropertyValue(expect.property)
-                return data
-              }, {} as any))
-          }, expect.selector, expect.expect)
-
-          if(styles.length == 0) {
-            errors.push({message: `要素'${expect.selector}'が存在しません`})
-            break
-          }
-
-          styles.forEach((e: any, i) => {
-            expect.expect.forEach((ex: {property: string, value: string}) => {
-              if(e[ex.property] != ex.value) errors.push({ message: `要素'${expect.selector}[${i}]'の値が正しくありません`, expect: `${ex.property}: ${ex.value}`, result: `${ex.property}: ${e[ex.property]}` })
+            texts.forEach(text => {
+              if(!expect.expect.includes(text)) {
+                errors.push({message: `要素'${expect.selector}'の値が正しくありません`, expect: expect.expect.join(", "), result: text})
+              }
             })
-          })
-          break
-        }
-        case 'exists': {
-          if(!expect.selector) continue
-          title = `要素'${expect.selector}'の存在状態`
-
-          const res = await page.evaluate((selector: string) => document.querySelectorAll(selector).length > 0, expect.selector)
-          if(expect.expect != res) {
-            errors.push({message: `要素'${expect.selector}'の存在状態が正しくありません`, expect: expect.expect, result: `${res}`})
             break
           }
-          break
-        }
-        case 'displayed': {
-          if(!expect.selector) continue
-          title = `要素'${expect.selector}'の存在状態`
+          case 'contents': {
+            if(!expect.selector || !Array.isArray(expect.expect)) continue
+            title = `要素'${expect.selector}'の値`
 
-          const res = await page.evaluate((selector: string) => {
-            const element = document.querySelector(selector) as HTMLElement
-            if(!element) return false
-            if(element.style.display == 'none') return false
-            if(element.style.visibility == 'hidden') return false
-            return true
-          }, expect.selector)
-          if(expect.expect != res) {
-            errors.push({message: `要素'${expect.selector}'の表示状態が正しくありません`, expect: expect.expect, result: `${res}`})
+            const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
+
+            if(texts.length == 0) {
+              errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
+              break
+            }
+
+            expect.expect.forEach((e, i) => {
+              if(e == null) e = '';
+              if(texts[i] != e) errors.push({ message: `要素'${expect.selector}'の値が正しくありません`, expect: e, result: texts[i] })
+            })
             break
           }
+          case 'css': {
+            if(!expect.selector || !Array.isArray(expect.expect)) continue
+            title = `要素'${expect.selector}'の値`
 
-          break
-        }
-        case 'screenshot': {
-          if(!expect.name) continue
-          const id = `${this.id}-${uniqid()}`
-          const ssPath = NodePath.join(process.env.SCREENSHOTS_DIR || `${NodePath.dirname(`${require?.main?.filename}`)}/../public/screenshots/` , `/${id}.png`)
-          await page.screenshot({ path: ssPath });
-          screenshots.push({ name: expect.name, path: `/screenshots/${id}.png` })
-          continue
-        }
-        case 'click': {
-          if(!expect.selector) continue
-          title = `要素'${expect.selector}'をクリック`
+            const styles = await page.evaluate((selector: string, expects: {property: string, value: string}[]) => {
+              return Array.from(document.querySelectorAll(selector))
+                .map(e => expects.reduce((data, expect) => {
+                  data[expect.property] = getComputedStyle(e).getPropertyValue(expect.property)
+                  return data
+                }, {} as any))
+            }, expect.selector, expect.expect)
 
-          try {
-            await Promise.all([
-              page.waitForNavigation({waitUntil: ['load', 'networkidle2'], timeout: 5000}),
-              page.click(expect.selector)
-            ]);
-          } catch(e: any) {
-            errors.push({ message: e.message })
+            if(styles.length == 0) {
+              errors.push({message: `要素'${expect.selector}'が存在しません`})
+              break
+            }
+
+            styles.forEach((e: any, i) => {
+              expect.expect.forEach((ex: {property: string, value: string}) => {
+                if(e[ex.property] != ex.value) errors.push({ message: `要素'${expect.selector}[${i}]'の値が正しくありません`, expect: `${ex.property}: ${ex.value}`, result: `${ex.property}: ${e[ex.property]}` })
+              })
+            })
+            break
           }
-          break
-        }
-        case 'wait': {
-          if(!expect.timeout) continue
+          case 'exists': {
+            if(!expect.selector) continue
+            title = `要素'${expect.selector}'の存在状態`
 
-          if(!expect.selector) {
-            await sleep(expect.timeout * 1000)
-          } else {
+            const res = await page.evaluate((selector: string) => document.querySelectorAll(selector).length > 0, expect.selector)
+            if(expect.expect != res) {
+              errors.push({message: `要素'${expect.selector}'の存在状態が正しくありません`, expect: expect.expect, result: `${res}`})
+              break
+            }
+            break
+          }
+          case 'displayed': {
+            if(!expect.selector) continue
+            title = `要素'${expect.selector}'の存在状態`
+
+            const res = await page.evaluate((selector: string) => {
+              const element = document.querySelector(selector) as HTMLElement
+              if(!element) return false
+              if(getComputedStyle(element)['display'] == 'none') return false
+              if(getComputedStyle(element)['visibility'] == 'hidden') return false
+              if(getComputedStyle(element)['opacity'] == '0') return false
+              return true
+            }, expect.selector)
+            if(expect.expect != res) {
+              errors.push({message: `要素'${expect.selector}'の表示状態が正しくありません`, expect: `${expect.expect}`, result: `${res}`})
+              break
+            }
+
+            break
+          }
+          case 'screenshot': {
+            if(!expect.name) continue
+            const id = `${this.id}-${uniqid()}`
+            const ssPath = NodePath.join(process.env.SCREENSHOTS_DIR || `${NodePath.dirname(`${require?.main?.filename}`)}/../public/screenshots/` , `/${id}.png`)
+            await page.screenshot({ path: ssPath });
+            screenshots.push({ name: expect.name, path: `/screenshots/${id}.png` })
+            continue
+          }
+          case 'click': {
+            if(!expect.selector) continue
+            title = `要素'${expect.selector}'をクリック`
+
             try {
-              await Promise.race([
-                page.waitForSelector(expect.selector, { timeout: expect.timeout * 1000 }),
-                new Promise(async res => {
-                  if(await page.evaluate((selector: string) => document.querySelector(selector), `${expect.selector}`) != null) res(null)
-                })
-              ])
+              if(expect.type == 'navigation') {
+                await Promise.all([
+                  page.waitForNavigation({waitUntil: ['load', 'networkidle2'], timeout: 5000}),
+                  page.click(expect.selector)
+                ]);
+              } else {
+                await page.click(expect.selector);
+              }
             } catch(e: any) {
               errors.push({ message: e.message })
             }
+            break
           }
-          break
-        }
-        case 'input': {
-          if(!expect.selector || !expect.value) continue
-          try {
-            await page.$eval(expect.selector, element => (element as HTMLInputElement).value = '');
-            await page.type(expect.selector, `${expect.value}`)
-          } catch(e: any) {
-            errors.push({ message: e.message })
+          case 'wait': {
+            if(!expect.timeout) continue
+
+            if(!expect.selector) {
+              await sleep(expect.timeout * 1000)
+            } else {
+              try {
+                await Promise.race([
+                  page.waitForSelector(expect.selector, { timeout: expect.timeout * 1000 }),
+                  new Promise(async res => {
+                    if(await page.evaluate((selector: string) => document.querySelector(selector), `${expect.selector}`) != null) res(null)
+                  })
+                ])
+              } catch(e: any) {
+                errors.push({ message: e.message })
+              }
+            }
+            break
           }
-          break
+          case 'input': {
+            if(!expect.selector || !expect.value) continue
+            try {
+              await page.$eval(expect.selector, element => (element as HTMLInputElement).value = '');
+              await page.type(expect.selector, `${expect.value}`)
+            } catch(e: any) {
+              errors.push({ message: e.message })
+            }
+            break
+          }
         }
+      } catch(e: any) {
+        errors.push({ message: e.message })
       }
       results.push({ ok: errors.length == 0, title, target, errors })
     }
+      
 
     await page.close();
     return { tr: results, ss: screenshots }

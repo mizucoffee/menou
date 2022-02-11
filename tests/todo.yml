@@ -283,6 +283,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/signup"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: form
@@ -297,6 +298,7 @@ tests:
               value: password
             - target: click
               selector: input[type="submit"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: .list-group-item>a
@@ -306,6 +308,7 @@ tests:
                 - ログアウト
             - target: click
               selector: a[href="/signout"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: .list-group-item>a
@@ -317,6 +320,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/signin"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: form
@@ -328,6 +332,7 @@ tests:
               value: password
             - target: click
               selector: input[type="submit"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: .list-group-item>a
@@ -389,6 +394,7 @@ tests:
               value: "2000-01-01"
             - target: click
               selector: input[type="submit"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: table
@@ -400,6 +406,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/tasks/3/edit"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: form
@@ -408,6 +415,7 @@ tests:
               value: "1999-01-01"
             - target: click
               selector: input[type="submit"]
+              type: navigation
             - target: wait
               timeout: 10
               selector: table
@@ -419,8 +427,10 @@ tests:
           dom:
             - target: click
               selector: form[action="/tasks/2/done"]>input[type="submit"]
+              type: navigation
             - target: click
               selector: a[href="/tasks/3/star"]
+              type: navigation
             - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
@@ -461,6 +471,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/tasks/done"]
+              type: navigation
             - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
@@ -481,6 +492,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/tasks/over"]
+              type: navigation
             - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
@@ -501,6 +513,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/?list=3"]
+              type: navigation
             - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
@@ -524,6 +537,7 @@ tests:
               expect: true
             - target: click
               selector: form[action="/tasks/3/delete"]>input[type="submit"]
+              type: navigation
             - target: wait
               timeout: 1
             - target: exists
