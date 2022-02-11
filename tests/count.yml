@@ -71,7 +71,7 @@ tests:
             - target: displayed
               selector: form>input[type="submit"][value="-"]
               expect: true
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 0
@@ -85,7 +85,7 @@ tests:
         path: /
         expect:
           dom:
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 1
@@ -97,7 +97,7 @@ tests:
         path: /
         expect:
           dom:
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 0
@@ -107,13 +107,13 @@ tests:
         path: /
         expect:
           dom:
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 0
             - target: click
               selector: form>input[type="submit"][value="+"]
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 1
@@ -121,7 +121,7 @@ tests:
               name: トップページ（+1カウントした状態）
             - target: click
               selector: form>input[type="submit"][value="-"]
-            - target: content
+            - target: contents
               selector: h1
               expect:
                 - 0

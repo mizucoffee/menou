@@ -1,0 +1,229 @@
+---
+name: Express App
+id: 08_express
+models: /models.rb
+tests:
+  - name: "[FILE] ファイルの存在確認"
+    tasks:
+      - type: file_exists
+        expect:
+          files:
+            - app.rb
+            - models.rb
+            - db/migrate/*_create_histories.rb
+            - db/migrate/*_add_favorite.rb
+            - public/favicon.ico
+            - public/logo.png
+            - public/style.css
+            - views/form.erb
+            - views/list.erb
+  - name: "[DB] Schema検証"
+    tasks:
+      - type: db_schema
+        table: histories
+        expect:
+          schema:
+            - name: x
+              type: float
+            - name: y
+              type: float
+            - name: favorite
+              type: boolean
+              options:
+                default: false
+            - name: created_at
+              type: datetime
+              options:
+                "null": false
+            - name: updated_at
+              type: datetime
+              options:
+              "null": false
+  - name: "[UI] トップページ"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: page_title
+              expect: フォーム
+            - target: displayed
+              selector: input#x
+              expect: true
+            - target: displayed
+              selector: input#y
+              expect: true
+            - target: displayed
+              selector: button[type="submit"]
+              expect: true
+            - target: screenshot
+              name: トップページ
+  - name: "[UI] 最寄り駅ページ"
+    tasks:
+      - type: dom
+        path: /list?x=135.51077935867468&y=34.71098733537241
+        expect:
+          dom:
+            - target: page_title
+              expect: 最寄り駅リスト
+            - target: contents
+              selector: .name
+              expect:
+                - 天神橋筋六丁目
+                - 天神橋筋六丁目
+                - 天神橋筋六丁目
+                - 中崎町
+                - 天満
+            - target: contents
+              selector: .line
+              expect:
+                - 大阪谷町線
+                - 阪急千里線
+                - 大阪堺筋線
+                - 大阪谷町線
+                - JR大阪環状線
+            - target: content
+              selector: .container-fluid>h2
+              expect:
+                - 135.51077935867468, 34.71098733537241の最寄駅
+                - 135.51077935867468, 34.71098733537241の最寄り駅
+            - target: screenshot
+              name: 最寄り駅一覧ページ
+  - name: "[TRANSITION] 検索"
+    tasks:
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: input
+              selector: input[name="x"]
+              value: "135.51077935867468"
+            - target: input
+              selector: input[name="y"]
+              value: "34.71098733537241"
+            - target: click
+              selector: button[value="検索"]
+            - target: wait
+              timeout: 10
+              selector: .container-fluid>h2
+            - target: content
+              selector: .container-fluid>h2
+              expect:
+                - 135.51077935867468, 34.71098733537241の最寄駅
+                - 135.51077935867468, 34.71098733537241の最寄り駅
+            - target: path
+              expect: /list?x=135.51077935867468&y=34.71098733537241
+  - name: "[API] 次の駅を取得するAPI"
+    tasks:
+      - type: http_get_status
+        path: /api/station?line=JR%E5%B1%B1%E6%89%8B%E7%B7%9A&name=%E6%9D%B1%E4%BA%AC
+        expect:
+          value: 200
+      - type: http_get_json
+        path: /api/station?line=JR%E5%B1%B1%E6%89%8B%E7%B7%9A&name=%E6%9D%B1%E4%BA%AC
+        expect:
+          next: 有楽町
+  - name: "[API] 次の駅を取得するAPI [存在しない路線]"
+    tasks:
+      - type: http_get_status
+        path: /api/station?line=JR%E5%B1%B1%E3%83%8E%E6%89%8B%E7%B7%9A&name=%E6%9D%B1%E4%BA%AC
+        expect:
+          value: 200
+      - type: http_get_json
+        path: /api/station?line=JR%E5%B1%B1%E3%83%8E%E6%89%8B%E7%B7%9A&name=%E6%9D%B1%E4%BA%AC
+        expect:
+          error: "No Station."
+  - name: "[UI] お気に入り"
+    tasks:
+      - type: http_get_status
+        path: /list?x=135&y=35
+        expect:
+          value: 200
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .far.fa-heart.text-muted
+              expect: true
+            - target: click
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .fas.fa-heart.heart
+              expect: true
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)
+              expect: true
+            - target: contents
+              selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)>div.card-body
+              expect:
+                - 135.0, 35.0
+            - target: click
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="解除"]
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) .far.fa-heart.text-muted
+              expect: true
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(3) div.card:nth-child(1)
+              expect: false
+            - target: click
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) button[type="submit"][value="お気に入り"]
+            - target: screenshot
+              name: トップページ（お気に入り）
+  - name: "[UI] 削除"
+    tasks:
+      - type: http_get_status
+        path: /list
+        query:
+          x: 135.5
+          y: 35.5
+        expect:
+          value: 200
+      - type: dom
+        path: /
+        expect:
+          dom:
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(4)
+              expect: true
+            - target: click
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(1) form[action="4/delete"][method="post"] button[type="submit"]
+            - target: exists
+              selector: div.row.d-flex.justify-content-center:nth-of-type(2) div.card:nth-child(4)
+              expect: false
+  - name: "[UI] モーダル"
+    tasks:
+      - type: dom
+        path: /list
+        query:
+          x: 139.73426180982665
+          y: 35.643120277039536
+        expect:
+          dom:
+            - target: displayed
+              selector: div#modal
+              expect: false
+            - target: contents
+              selector: div#modal .modal-body.text-center.next
+              expect:
+                - ""
+            - target: click
+              selector: .card
+            - target: wait
+              second: 1
+            - target: displayed
+              selector: div#modal
+              expect: true
+            - target: screenshot
+              name: 最寄り駅一覧ページ（モーダル）
+            - target: contents
+              selector: div#modal .modal-body.text-center.next
+              expect:
+                - 三田
+            - target: click
+              selector: button.close[type="button"][data-dismiss="modal"][aria-label="Close"]
+            - target: wait
+              second: 1
+            - target: displayed
+              selector: div#modal
+              expect: false

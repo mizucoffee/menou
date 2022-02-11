@@ -53,11 +53,11 @@ tests:
             - target: displayed
               selector: p>a
               expect: true
-            - target: content
+            - target: contents
               selector: p>strong
               expect:
                 - Ruby
-            - target: content
+            - target: contents
               selector: p>a
               expect:
                 - Ruby

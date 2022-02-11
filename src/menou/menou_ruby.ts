@@ -247,7 +247,6 @@ export class MenouRuby extends Menou {
 
     const page = await this.browser?.newPage()
     await page.goto(urlJoin(`${this.client.defaults.baseURL}`, path));
-    console.log(urlJoin(`${this.client.defaults.baseURL}`, path))
     await page.setViewport({ width: 1920, height: 1080 })
 
     for(const expect of expects) {
@@ -268,6 +267,24 @@ export class MenouRuby extends Menou {
           break
         }
         case 'content': {
+          if(!expect.selector || !Array.isArray(expect.expect)) continue
+          title = `要素'${expect.selector}'の値`
+
+          const texts = await page.evaluate((selector: string) => Array.from(document.querySelectorAll(selector)).map(e => e.textContent?.trim()), expect.selector)
+
+          if(texts.length == 0) {
+            errors.push({message: `要素'${expect.selector}'が存在しません`, expect: expect.expect.join(", ")})
+            break
+          }
+
+          texts.forEach(text => {
+            if(!expect.expect.includes(text)) {
+              errors.push({message: `要素'${expect.selector}'の値が正しくありません`, expect: expect.expect.join(", "), result: text})
+            }
+          })
+          break
+        }
+        case 'contents': {
           if(!expect.selector || !Array.isArray(expect.expect)) continue
           title = `要素'${expect.selector}'の値`
 

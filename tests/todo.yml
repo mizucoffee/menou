@@ -195,18 +195,18 @@ tests:
           dom:
             - target: page_title
               expect: todoアプリ
-            - target: content
+            - target: contents
               selector: body>nav.navbar.navbar-default>div.container>div.navbar-header>a.navbar-brand
               expect:
                 - todoアプリ
-            - target: content
+            - target: contents
               selector: body>nav.navbar.navbar-default>div.container>ul.nav.navbar-nav.navbar-right>li>a
               expect:
                 -
                 - 新規ユーザーですか?
                 - ログイン
                 - 新規登録
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-2>ul.list-group>li.list-group-item>a
               expect:
                 - トップ
@@ -215,7 +215,7 @@ tests:
                 - プライベート
                 - 仕事
                 - その他
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>thead>tr>th
               expect:
                 - タイトル
@@ -225,7 +225,7 @@ tests:
                 - 編集
                 - 備考
                 - 重要?
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr>td>a
               expect:
                 - 新しいtodo
@@ -300,7 +300,7 @@ tests:
             - target: wait
               timeout: 10
               selector: .list-group-item>a
-            - target: content
+            - target: contents
               selector: a[href="/signout"]
               expect:
                 - ログアウト
@@ -331,7 +331,7 @@ tests:
             - target: wait
               timeout: 10
               selector: .list-group-item>a
-            - target: content
+            - target: contents
               selector: a[href="/signout"]
               expect:
                 - ログアウト
@@ -421,7 +421,7 @@ tests:
               selector: form[action="/tasks/2/done"]>input[type="submit"]
             - target: click
               selector: a[href="/tasks/3/star"]
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク1
@@ -431,7 +431,7 @@ tests:
                 - 編集
                 - ""
                 - ""
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(2)>td
               expect:
                 - タスク2
@@ -441,7 +441,7 @@ tests:
                 - 編集
                 - ""
                 - ""
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(3)>td
               expect:
                 - タスク3
@@ -461,7 +461,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/tasks/done"]
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク2
@@ -481,7 +481,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/tasks/over"]
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク3
@@ -501,7 +501,7 @@ tests:
           dom:
             - target: click
               selector: a[href="/?list=3"]
-            - target: content
+            - target: contents
               selector: body>div.container>div.row>div.col-lg-10>table.table.table-striped.table-bordered.table-hover>tbody>tr:nth-child(1)>td
               expect:
                 - タスク1
